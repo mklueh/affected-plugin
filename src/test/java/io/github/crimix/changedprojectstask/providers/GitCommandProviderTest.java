@@ -1,6 +1,7 @@
 package io.github.crimix.changedprojectstask.providers;
 
-import io.github.crimix.changedprojectstask.utils.GitDiffMode;
+import io.github.crimix.changedprojectstask.providers.git.GitCommandProvider;
+import io.github.crimix.changedprojectstask.providers.git.GitDiffMode;
 import org.assertj.core.api.Assertions;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
@@ -48,7 +49,8 @@ public class GitCommandProviderTest {
                 .withName("root")
                 .build();
 
-        GitCommandProvider provider = new GitCommandProvider(project);
+        GitCommandProvider provider = new GitCommandProvider(project, null);
+
         if (!exception) {
             String actual = provider.evaluate(mode, Optional.ofNullable(current), Optional.ofNullable(previous));
             Assertions.assertThat(actual)

@@ -1,10 +1,11 @@
 package io.github.crimix.changedprojectstask.providers;
 
-import io.github.crimix.changedprojectstask.configuration.ChangedProjectsConfiguration;
-import io.github.crimix.changedprojectstask.extensions.Extensions;
+import io.github.crimix.changedprojectstask.configuration.Configuration;
+import io.github.crimix.changedprojectstask.providers.git.GitCommandProvider;
 import io.github.crimix.changedprojectstask.utils.CollectingOutputStream;
+import io.github.crimix.changedprojectstask.providers.git.GitUtil;
+import io.github.crimix.changedprojectstask.utils.LogUtil;
 import lombok.SneakyThrows;
-import lombok.experimental.ExtensionMethod;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
@@ -18,27 +19,30 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@ExtensionMethod(Extensions.class)
 public class ChangedFilesProvider {
 
+    private final Logger logger;
     private final Project project;
-    private final ChangedProjectsConfiguration extension;
+    private final Configuration configuration;
     private final GitCommandProvider gitCommandProvider;
-    private final List<File> filteredChanges;
+    private final List<File> changedFiles;
     private final boolean affectsAllProjects;
 
-    public ChangedFilesProvider(Project project, ChangedProjectsConfiguration extension) {
+    public ChangedFilesProvider(Project project, Configuration configuration) {
         this.project = project;
-        this.extension = extension;
-        this.gitCommandProvider = new GitCommandProvider(project);
-        List<String> gitFilteredChanges = initFilteredChanges();
-        this.filteredChanges = initFilteredChangedFiles(gitFilteredChanges);
-        this.affectsAllProjects = initAffectsAllProjects(gitFilteredChanges);
+        this.logger = project.getLogger();
+        this.configuration = configuration;
+        this.gitCommandProvider = new GitCommandProvider(project, configuration);
+        List<String> gitFilteredChanges = findFilteredFileChanges();
+
+        this.changedFiles = createAbsolutFilePaths(gitFilteredChanges);
+        this.affectsAllProjects = affectsAllProjects(gitFilteredChanges);
     }
 
     @SneakyThrows
-    private List<String> initFilteredChanges() {
-        File gitRoot = project.getGitRootDir();
+    private List<String> findFilteredFileChanges() {
+        File gitRoot = GitUtil.getGitRootDir(project);
+
         if (gitRoot == null) {
             throw new IllegalStateException("The project does not have a git root");
         }
@@ -60,12 +64,7 @@ public class ChangedFilesProvider {
         }
 
         //Create a single predicate from the ignored regexes such that we can use a simple filter
-        Predicate<String> filter = extension.getIgnoredRegex()
-                .getOrElse(Collections.emptySet())
-                .stream()
-                .map(Pattern::asMatchPredicate)
-                .reduce(Predicate::or)
-                .orElse(x -> false);
+        Predicate<String> filter = createIgnoredFilter();
 
         //Filter and return the list
         return stdout.getLines().stream()
@@ -73,9 +72,18 @@ public class ChangedFilesProvider {
                 .collect(Collectors.toList());
     }
 
-    private boolean initAffectsAllProjects(List<String> gitFilteredChanges) {
+    private Predicate<String> createIgnoredFilter() {
+        return configuration.getIgnoredRegex()
+                .getOrElse(Collections.emptySet())
+                .stream()
+                .map(Pattern::asMatchPredicate)
+                .reduce(Predicate::or)
+                .orElse(x -> false);
+    }
+
+    private boolean affectsAllProjects(List<String> gitFilteredChanges) {
         //Create a single predicate from the affects all projects regexes such that we can use a simple filter
-        Predicate<String> filter = extension.getAffectsAllRegex()
+        Predicate<String> filter = configuration.getAffectsAllRegex()
                 .getOrElse(Collections.emptySet())
                 .stream()
                 .map(Pattern::asMatchPredicate)
@@ -86,27 +94,30 @@ public class ChangedFilesProvider {
                 .anyMatch(filter);
     }
 
-    private List<File> initFilteredChangedFiles(List<String> gitFilteredChanges) {
-        File gitRoot = project.getGitRootDir();
+    private List<File> createAbsolutFilePaths(List<String> changedFiles) {
+        File gitRoot = GitUtil.getGitRootDir(project);
+
         if (gitRoot == null) {
             throw new IllegalStateException("The project does not have a git root");
         }
 
-        return gitFilteredChanges.stream()
+        return changedFiles.stream()
                 .map(s -> new File(gitRoot, s))
                 .collect(Collectors.toList());
     }
 
     /**
      * Gets the filtered changed files
+     *
      * @return the filtered changed files
      */
     public List<File> getChangedFiles() {
-        return filteredChanges;
+        return changedFiles;
     }
 
     /**
      * Returns whether all projects are affected by the changes specified by the plugin configuration
+     *
      * @return true if all projects are affected
      */
     public boolean isAllProjectsAffected() {
@@ -115,15 +126,13 @@ public class ChangedFilesProvider {
 
     /**
      * Prints debug information if it has been enabled
-     * @param logger the logger to print information to
      */
-    public void printDebug(Logger logger) {
-        if (extension.shouldLog()) {
+    public void printDebug() {
+        if (LogUtil.shouldLog(configuration)) {
             logger.lifecycle("Git diff command uses {}", gitCommandProvider.getGitDiffCommand());
             logger.lifecycle("All projects affected? {}", isAllProjectsAffected());
             logger.lifecycle("Changed files:");
-            getChangedFiles()
-                    .forEach(file -> logger.lifecycle(file.toString()));
+            changedFiles.forEach(file -> logger.lifecycle(file.toString()));
             logger.lifecycle("");
         }
     }

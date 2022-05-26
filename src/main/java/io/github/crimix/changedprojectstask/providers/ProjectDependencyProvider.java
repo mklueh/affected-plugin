@@ -1,12 +1,11 @@
 package io.github.crimix.changedprojectstask.providers;
 
-import io.github.crimix.changedprojectstask.configuration.ChangedProjectsConfiguration;
-import io.github.crimix.changedprojectstask.extensions.Extensions;
+import io.github.crimix.changedprojectstask.configuration.Configuration;
+import io.github.crimix.changedprojectstask.configuration.PropertiesExtractor;
+import io.github.crimix.changedprojectstask.utils.LogUtil;
 import io.github.crimix.changedprojectstask.utils.Pair;
 import io.github.crimix.changedprojectstask.utils.ProjectNode;
-import lombok.experimental.ExtensionMethod;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.logging.Logger;
 
@@ -20,17 +19,18 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@ExtensionMethod(Extensions.class)
 public class ProjectDependencyProvider {
 
+    private final Logger logger;
     private final Project project;
-    private final ChangedProjectsConfiguration extension;
+    private final Configuration configuration;
     private final Map<Project, Set<Project>> projectDependentsMap;
     private final ProjectNode rootNode;
 
-    public ProjectDependencyProvider(Project project, ChangedProjectsConfiguration extension) {
+    public ProjectDependencyProvider(Project project, Configuration configuration) {
         this.project = project;
-        this.extension = extension;
+        this.logger = project.getLogger();
+        this.configuration = configuration;
         this.projectDependentsMap = initProjectDependents();
         this.rootNode = new ProjectNode(project.getRootProject());
     }
@@ -48,7 +48,7 @@ public class ProjectDependencyProvider {
     private Set<Pair<Project, Project>> getProjectDependencies(Project subproject) {
         //We use a pair, because we want the project that is a dependency together with the project it is a dependency for
         return subproject.getConfigurations().stream()
-                .map(Configuration::getDependencies)
+                .map(org.gradle.api.artifacts.Configuration::getDependencies)
                 .map(dependencySet -> dependencySet.withType(ProjectDependency.class))
                 .flatMap(Set::stream)
                 .map(ProjectDependency::getDependencyProject)
@@ -58,12 +58,12 @@ public class ProjectDependencyProvider {
 
     public Project getChangedProject(File file) {
         String filePath = file.getPath();
-        if (!filePath.contains(project.getRootProject().getProjectDirName() + File.separator)) {
+        if (!filePath.contains(PropertiesExtractor.getProjectDirName(project.getRootProject()) + File.separator)) {
             return null; //We return null here as there is no need to try and step though the map
         }
 
         //We do the split such that we can start from the root of the project and thus when we get an empty optional back we know we are done
-        filePath = filePath.split(Pattern.quote(project.getRootProject().getProjectDirName() + File.separator), 2)[1];
+        filePath = filePath.split(Pattern.quote(PropertiesExtractor.getProjectDirName(project.getRootProject()) + File.separator), 2)[1];
         String[] paths = filePath.split(Pattern.quote(File.separator));
         ProjectNode currentNode = rootNode;
 
@@ -109,8 +109,9 @@ public class ProjectDependencyProvider {
         return result;
     }
 
-    public void printDebug(Logger logger) {
-        if (extension.shouldLog()) {
+    public void printDebug() {
+        if (LogUtil.shouldLog(configuration)) {
+
             logger.lifecycle("Printing project dependents map");
             projectDependentsMap.forEach((key, value) -> logger.lifecycle("Project: {} is a direct dependent for the following {}", key, value));
             logger.lifecycle("Printing project nodes");

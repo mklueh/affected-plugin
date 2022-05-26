@@ -1,4 +1,4 @@
-package io.github.crimix.changedprojectstask.utils;
+package io.github.crimix.changedprojectstask.providers.git;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -7,9 +7,13 @@ import java.util.stream.Collectors;
  * The available modes to use when trying to get the git diff
  */
 public enum GitDiffMode {
+
     COMMIT("commit"),
+
     BRANCH("branch"),
+
     BRANCH_TWO_DOT("branchTwoDotted"),
+
     BRANCH_THREE_DOT("branchThreeDotted");
 
     private final String commandOption;
