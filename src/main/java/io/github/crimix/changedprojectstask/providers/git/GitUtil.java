@@ -1,6 +1,6 @@
 package io.github.crimix.changedprojectstask.providers.git;
 
-import io.github.crimix.changedprojectstask.providers.git.GitDiffMode;
+import io.github.crimix.changedprojectstask.configuration.PropertiesExtractor;
 import org.gradle.api.Project;
 
 import java.io.File;
@@ -12,15 +12,6 @@ import static io.github.crimix.changedprojectstask.configuration.Properties.*;
  * Created by Marian at 26.05.2022
  */
 public class GitUtil {
-    /**
-     * Extracts the value of a given CLI parameter
-     */
-    public static Optional<String> extractParameterValue(Project project, String parameter) {
-        return Optional.of(project)
-                .map(Project::getRootProject)
-                .map(p -> p.findProperty(parameter))
-                .map(String.class::cast);
-    }
 
     /**
      * Gets the configured previous commit id
@@ -28,7 +19,7 @@ public class GitUtil {
      * @return either an optional with the previous commit id or an empty optional if it has not been configured
      */
     public static Optional<String> getPreviousCommitId(Project project) {
-        return extractParameterValue(project, PREVIOUS_COMMIT);
+        return PropertiesExtractor.extractParameterValue(project, PREVIOUS_COMMIT);
     }
 
     /**
@@ -37,7 +28,7 @@ public class GitUtil {
      * @return either an optional with the commit id or an empty optional if it has not been configured
      */
     public static Optional<String> getCommitId(Project project) {
-        return extractParameterValue(project, CURRENT_COMMIT);
+        return PropertiesExtractor.extractParameterValue(project, CURRENT_COMMIT);
     }
 
     /**

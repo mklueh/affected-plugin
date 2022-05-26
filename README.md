@@ -2,20 +2,23 @@
 A Gradle plugin to run a user defined task on changed projects (modules) and their dependent projects (modules) based on git changes.
 This is based on either the HEAD commit, a specific commit id or even a commit range.
 
-## Installation
-Recommended way is to apply the plugin to the root `build.gradle` in the `plugins` block
+>Note: this is a fork of the original Changed Projects Task Plugin with the intention to mimic the
+API of NX used for frontend projects. See [https://nx.dev/using-nx/affected](https://nx.dev/using-nx/affected)
 
-```groovy
-plugins {
-    id 'io.github.crimix.changed-projects-task' version 'VERSION'
-}
+
+It has a slightly different API than the original. For example, this command would run the task **release** for the applications **applicationModuleA** and **applicationModuleB** in case they or their dependent modules have changed
+
+```shell
+ ./gradlew --continue affected -Paffected.run -Paffected.target=release \
+  -Paffected.projects=applicationModuleA,applicationModuleB
 ```
 
-and then configure the plugin using the following block still in the root `build.gradle`
+## Installation
+The plugin is not intended to be available as a Maven artifact.
 
 ```groovy
-affectedTask {
-    taskToRun = "test" //One of the main use cases of the plugin
+affected {
+    target = "test" //One of the main use cases of the plugin
     alwaysRunProject = [
             ":some-other-project"
     ]
@@ -49,9 +52,10 @@ To use the added `affected` task from this plugin you need to run it the `-Paffe
 
 - `--continue` Depending on usage, it might be a good idea to run it with `--continue` such that all dependent tasks are run, instead of fail-fast behaviour.
 
-- `-Paffected.taskToRun` let's you configure the task to run on demand. 
+- `-Paffected.target` let's you configure the task to run on demand. 
   If provided, the taskToRun is not required in the config anymore. It will also have higher priority as the task provided in the configuration.
 
+- `-Paffected.projects` let's you specify a restricted list of modules that will be checked for     changed, including their module dependencies
 
 - `-Paffected.commit` is to configure which ref to use in the git diff.
   - If this is specified with `-Paffected.prevCommit` it creates a range to use in diff.   

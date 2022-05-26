@@ -5,6 +5,7 @@ import io.github.crimix.changedprojectstask.configuration.Configuration;
 import io.github.crimix.changedprojectstask.configuration.PropertiesExtractor;
 import io.github.crimix.changedprojectstask.providers.ChangedFilesProvider;
 import io.github.crimix.changedprojectstask.providers.ProjectDependencyProvider;
+import io.github.crimix.changedprojectstask.utils.Extension;
 import io.github.crimix.changedprojectstask.utils.LogUtil;
 import io.github.crimix.changedprojectstask.configuration.ConfigurationValidator;
 import org.gradle.api.Project;
@@ -65,9 +66,7 @@ public class AffectedTask {
     }
 
     private boolean shouldProjectRun(Project p) {
-        return !neverRunProjects.contains(p)
-                && (mayRunProjects.isEmpty() || mayRunProjects.contains(p))
-                && (affectsAll || affectedProjects.contains(p) || alwaysRunProjects.contains(p));
+        return !neverRunProjects.contains(p) && (mayRunProjects.isEmpty() || mayRunProjects.contains(p)) && (affectsAll || affectedProjects.contains(p) || alwaysRunProjects.contains(p));
     }
 
     private void configureAfterAllEvaluate() {
@@ -105,38 +104,30 @@ public class AffectedTask {
                     }
                 }
 
-                affectedProjects = Stream.concat(directlyAffectedProjects.stream(), dependentAffectedProjects.stream())
-                        .collect(Collectors.toSet());
+                affectedProjects = Stream.concat(directlyAffectedProjects.stream(), dependentAffectedProjects.stream()).collect(Collectors.toSet());
             }
         }
     }
 
     private Set<Project> evaluateDirectAffectedProjects(ChangedFilesProvider changedFilesProvider, ProjectDependencyProvider projectDependencyProvider) {
-        return changedFilesProvider.getChangedFiles().stream()
-                .map(projectDependencyProvider::getChangedProject)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        return changedFilesProvider.getChangedFiles().stream().map(projectDependencyProvider::getChangedProject).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
     private void configureAlwaysAndNeverRun(Project project) {
         //should run no matter what
         Set<String> alwaysRunPath = configuration.getAlwaysRunProject().getOrElse(Collections.emptySet());
-        alwaysRunProjects = project.getAllprojects().stream()
-                .filter(p -> alwaysRunPath.contains(p.getPath()))
-                .collect(Collectors.toSet());
+        alwaysRunProjects = project.getAllprojects().stream().filter(p -> alwaysRunPath.contains(p.getPath())).collect(Collectors.toSet());
 
         //should never run
         Set<String> neverRunPath = configuration.getNeverRunProject().getOrElse(Collections.emptySet());
-        neverRunProjects = project.getAllprojects().stream()
-                .filter(p -> neverRunPath.contains(p.getPath()))
-                .collect(Collectors.toSet());
+        neverRunProjects = project.getAllprojects().stream().filter(p -> neverRunPath.contains(p.getPath())).collect(Collectors.toSet());
 
 
         //only those should be allowed to run if set
-        Set<String> onlyRun = configuration.getProjects().getOrElse(Collections.emptySet());
-        mayRunProjects = project.getAllprojects().stream()
-                .filter(p -> onlyRun.contains(p.getPath()))
-                .collect(Collectors.toSet());
+        Set<String> onlyRun = PropertiesExtractor.getEnabledModulesParameter(project)
+                .orElse(configuration.getProjects().getOrElse(Collections.emptySet()));
+
+        mayRunProjects = project.getAllprojects().stream().filter(p -> onlyRun.contains(p.getName())).collect(Collectors.toSet());
 
         if (LogUtil.shouldLog(configuration)) {
             logger.lifecycle("May run projects: {}", mayRunProjects);
@@ -150,20 +141,18 @@ public class AffectedTask {
     }
 
     private boolean hasBeenEnabled() {
-        return PropertiesExtractor.hasBeenEnabled(project);
+        return Extension.hasBeenEnabled(project);
     }
 
 
     private String resolvePathToTargetTask(Project project) {
-        String targetTask = PropertiesExtractor
-                .getTargetTaskParameter(project)
-                .orElse(configuration.getTarget().getOrNull());
+        String targetTask = PropertiesExtractor.getTargetTaskParameter(project).orElse(configuration.getTarget().getOrNull());
 
         if (LogUtil.shouldLog(configuration)) {
             logger.lifecycle("targetTask: {}", targetTask);
         }
 
-        if (PropertiesExtractor.isRootProject(project)) {
+        if (Extension.isRootProject(project)) {
             return String.format(":%s", targetTask);
         } else {
             return String.format("%s:%s", project.getPath(), targetTask);

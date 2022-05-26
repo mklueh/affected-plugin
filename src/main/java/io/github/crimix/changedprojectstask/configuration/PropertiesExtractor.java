@@ -1,6 +1,5 @@
 package io.github.crimix.changedprojectstask.configuration;
 
-import io.github.crimix.changedprojectstask.providers.git.GitUtil;
 import org.gradle.api.Project;
 
 import java.util.*;
@@ -9,36 +8,9 @@ import java.util.stream.Collectors;
 import static io.github.crimix.changedprojectstask.configuration.Properties.*;
 
 /**
- * Class the contains the Lombok extension methods
+ * Extractor for CLI arguments
  */
 public class PropertiesExtractor {
-
-    /**
-     * Returns whether the project is the root project.
-     *
-     * @return true if the project is the root project
-     */
-    public static boolean isRootProject(Project project) {
-        return project.equals(project.getRootProject());
-    }
-
-    /**
-     * Gets the name of the project's directory
-     *
-     * @return the name of the project's directory
-     */
-    public static String getProjectDirName(Project project) {
-        return project.getProjectDir().getName();
-    }
-
-    /**
-     * Returns whether the plugin's task is allowed to run and configure.
-     *
-     * @return true if the plugin's task is allowed to run and configure
-     */
-    public static boolean hasBeenEnabled(Project project) {
-        return project.getRootProject().hasProperty(ENABLE);
-    }
 
     /**
      * Gets the task to run from the command line arguments if given
@@ -46,7 +18,7 @@ public class PropertiesExtractor {
      * @return task to run CLI argument
      */
     public static Optional<String> getTargetTaskParameter(Project project) {
-        return GitUtil.extractParameterValue(project, TARGET_TASK);
+        return extractParameterValue(project, TARGET_TASK);
     }
 
     /**
@@ -54,10 +26,11 @@ public class PropertiesExtractor {
      *
      * @return collection of project names
      */
-    public static Collection<String> getEnabledProjectsParameter(Project project) {
-        return Arrays.stream(GitUtil.extractParameterValue(project, ENABLED_FOR_MODULES)
-                        .orElse("").split(","))
-                .map(String::trim).collect(Collectors.toList());
+    public static Optional<Set<String>> getEnabledModulesParameter(Project project) {
+        Optional<String> value = extractParameterValue(project, ENABLED_FOR_MODULES);
+        if (value.isEmpty()) return Optional.empty();
+        return Optional.of(Arrays.stream(value.get().split(","))
+                .map(String::trim).collect(Collectors.toSet()));
     }
 
     /**
@@ -69,4 +42,13 @@ public class PropertiesExtractor {
         return AffectedMode.valueOf(configuration.getChangedProjectsMode().getOrElse(AffectedMode.INCLUDE_DEPENDENTS.name()));
     }
 
+    /**
+     * Extracts the value of a given CLI parameter
+     */
+    public static Optional<String> extractParameterValue(Project project, String parameter) {
+        return Optional.of(project)
+                .map(Project::getRootProject)
+                .map(p -> p.findProperty(parameter))
+                .map(String.class::cast);
+    }
 }

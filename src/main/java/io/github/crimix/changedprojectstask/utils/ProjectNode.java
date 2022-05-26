@@ -1,6 +1,5 @@
 package io.github.crimix.changedprojectstask.utils;
 
-import io.github.crimix.changedprojectstask.configuration.PropertiesExtractor;
 import lombok.experimental.ExtensionMethod;
 import org.gradle.api.Project;
 
@@ -9,6 +8,7 @@ import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
+@ExtensionMethod(Extension.class)
 public class ProjectNode {
 
     private final Project project;
@@ -17,7 +17,7 @@ public class ProjectNode {
     public ProjectNode(Project project) {
         this.project = project;
         this.childNodes = project.getChildProjects().values().stream()
-                .collect(Collectors.toMap(PropertiesExtractor::getProjectDirName, ProjectNode::new));
+                .collect(Collectors.toMap(p -> p.getProjectDirName(), ProjectNode::new));
     }
 
     /**

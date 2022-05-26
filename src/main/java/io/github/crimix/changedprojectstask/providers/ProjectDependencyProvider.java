@@ -1,7 +1,7 @@
 package io.github.crimix.changedprojectstask.providers;
 
 import io.github.crimix.changedprojectstask.configuration.Configuration;
-import io.github.crimix.changedprojectstask.configuration.PropertiesExtractor;
+import io.github.crimix.changedprojectstask.utils.Extension;
 import io.github.crimix.changedprojectstask.utils.LogUtil;
 import io.github.crimix.changedprojectstask.utils.Pair;
 import io.github.crimix.changedprojectstask.utils.ProjectNode;
@@ -58,12 +58,12 @@ public class ProjectDependencyProvider {
 
     public Project getChangedProject(File file) {
         String filePath = file.getPath();
-        if (!filePath.contains(PropertiesExtractor.getProjectDirName(project.getRootProject()) + File.separator)) {
+        if (!filePath.contains(Extension.getProjectDirName(project.getRootProject()) + File.separator)) {
             return null; //We return null here as there is no need to try and step though the map
         }
 
         //We do the split such that we can start from the root of the project and thus when we get an empty optional back we know we are done
-        filePath = filePath.split(Pattern.quote(PropertiesExtractor.getProjectDirName(project.getRootProject()) + File.separator), 2)[1];
+        filePath = filePath.split(Pattern.quote(Extension.getProjectDirName(project.getRootProject()) + File.separator), 2)[1];
         String[] paths = filePath.split(Pattern.quote(File.separator));
         ProjectNode currentNode = rootNode;
 
