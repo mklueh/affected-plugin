@@ -1,48 +1,56 @@
-package io.github.crimix.changedprojectstask.providers;
+package io.github.crimix.changedprojectstask.providers.git;
 
-import io.github.crimix.changedprojectstask.extensions.Extensions;
-import io.github.crimix.changedprojectstask.utils.GitDiffMode;
+import io.github.crimix.changedprojectstask.configuration.Configuration;
+import io.github.crimix.changedprojectstask.configuration.PropertiesExtractor;
 import lombok.experimental.ExtensionMethod;
 import org.gradle.api.Project;
+import org.gradle.api.logging.Logger;
 import org.gradle.internal.impldep.org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.Optional;
 
-import static io.github.crimix.changedprojectstask.utils.Properties.CURRENT_COMMIT;
-import static io.github.crimix.changedprojectstask.utils.Properties.PREVIOUS_COMMIT;
+import static io.github.crimix.changedprojectstask.configuration.Properties.CURRENT_COMMIT;
+import static io.github.crimix.changedprojectstask.configuration.Properties.PREVIOUS_COMMIT;
 
 /**
  * This class is responsible for creating the git diff command based on the users command line choices when running the task.
  */
-@ExtensionMethod(Extensions.class)
+@ExtensionMethod(PropertiesExtractor.class)
 public class GitCommandProvider {
+
+    private final Logger logger;
 
     // The default if no commit ids have been specified
     private static final String HEAD = "HEAD";
     private static final String BASE_DIFF_COMMAND = "git diff --name-only";
 
     private final Project project;
+    private final Configuration configuration;
 
-    public GitCommandProvider(Project project) {
+    public GitCommandProvider(Project project, Configuration configuration) {
         this.project = project;
+        this.logger = project.getLogger();
+        this.configuration = configuration;
     }
 
     /**
      * Constructs the git diff command that should be used to find the changed files.
+     *
      * @return the git diff command
      */
     public String getGitDiffCommand() {
-        GitDiffMode mode = project.getCommitCompareMode();
-        Optional<String> currentCommitId = project.getCommitId();
-        Optional<String> previousCommitId = project.getPreviousCommitId();
+        GitDiffMode mode = GitUtil.getCommitCompareMode(project);
+        Optional<String> currentCommitId = GitUtil.getCommitId(project);
+        Optional<String> previousCommitId = GitUtil.getPreviousCommitId(project);
 
         return evaluate(mode, currentCommitId, previousCommitId);
     }
 
     /**
      * Method created such that we can write test for it
-     * @param mode the mode
-     * @param currentCommitId the current commit ref if present
+     *
+     * @param mode             the mode
+     * @param currentCommitId  the current commit ref if present
      * @param previousCommitId the previous commit ref if present
      * @return the git diff command
      */

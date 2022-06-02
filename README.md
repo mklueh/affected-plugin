@@ -2,17 +2,23 @@
 A Gradle plugin to run a user defined task on changed projects (modules) and their dependent projects (modules) based on git changes.
 This is based on either the HEAD commit, a specific commit id or even a commit range.
 
-## Installation
-Recommended way is to apply the plugin to the root `build.gradle` in the `plugins` block
-```groovy
-plugins {
-    id 'io.github.crimix.changed-projects-task' version 'VERSION'
-}
+>Note: this is a fork of the original Changed Projects Task Plugin with the intention to mimic the
+API of NX used for frontend projects. See [https://nx.dev/using-nx/affected](https://nx.dev/using-nx/affected)
+
+
+It has a slightly different API than the original. For example, this command would run the task **release** for the applications **applicationModuleA** and **applicationModuleB** in case they or their dependent modules have changed
+
+```shell
+ ./gradlew --continue affected -Paffected.run -Paffected.target=release \
+  -Paffected.projects=applicationModuleA,applicationModuleB
 ```
-and then configure the plugin using the following block still in the root `build.gradle` 
+
+## Installation
+The plugin is not intended to be available as a Maven artifact.
+
 ```groovy
-changedProjectsTask {
-    taskToRun = "test" //One of the main use cases of the plugin
+affected {
+    target = "test" //One of the main use cases of the plugin
     alwaysRunProject = [
             ":some-other-project"
     ]
@@ -39,33 +45,37 @@ As seen above, there are a few different configuration options available
 | `changedProjectsMode` | A string that denotes which mode the plugin is running in, either `ONLY_DIRECTLY` or `INCLUDE_DEPENDENTS`.<br/><br/>`INCLUDE_DEPENDENTS` is the default and causes the `taskToRun` to be executed for project that are changed and projects that depends on those changed.<br/><br/>`ONLY_DIRECTLY` causes the `taskToRun` to only be executed for projects that are changed and only those. |
 
 ## Usage
-To use the added `runTaskForChangedProjects` from this plugin you need to run it with a few parameters.
-The minimum required is `-PchangedProjectsTask.run` which enables the plugin to run.
-Depending on usage, it might also be a good idea to run it with `--continue` such that all dependent tasks are run, instead of fail-fast behaviour.
-Then there are three other optional parameters `-PchangedProjectsTask.commit`, `-PchangedProjectsTask.prevCommit` and `-PchangedProjectsTask.compareMode` and `-PchangedProjectsTask.taskToRun`.
-
-- `-PchangedProjectsTask.taskToRun` let's you configure the task to run on demand. If provided, the taskToRun is not required in the config anymore. It will also have higher priority as the task provided in the configuration.
+To use the added `affected` task from this plugin you need to run it the `-Paffected.run` parameter, which enables the plugin to run.
 
 
-- `-PchangedProjectsTask.commit` is to configure which ref to use in the git diff.
-  - If this is specified with `-PchangedProjectsTask.prevCommit` it creates a range to use in diff.   
+### Other CLI arguments
+
+- `--continue` Depending on usage, it might be a good idea to run it with `--continue` such that all dependent tasks are run, instead of fail-fast behaviour.
+
+- `-Paffected.target` let's you configure the task to run on demand. 
+  If provided, the taskToRun is not required in the config anymore. It will also have higher priority as the task provided in the configuration.
+
+- `-Paffected.projects` let's you specify a restricted list of modules that will be checked for     changed, including their module dependencies
+
+- `-Paffected.commit` is to configure which ref to use in the git diff.
+  - If this is specified with `-Paffected.prevCommit` it creates a range to use in diff.   
   By calling the following `git diff --name-only prevCommit~ commit`.
-  - If it is specified with `-PchangedProjectsTask.prevCommit`, it uses the following command instead  
+  - If it is specified with `-Paffected.prevCommit`, it uses the following command instead  
   `git diff --name-only commit~ commit`
   
 
-- `-PchangedProjectsTask.prevCommit` is to configure which previous ref to use in the git diff.   
-This cannot be used without also using `-PchangedProjectsTask.commit`
+- `-Paffected.prevCommit` is to configure which previous ref to use in the git diff.   
+This cannot be used without also using `-Paffected.commit`
 
 
-- `-PchangedProjectsTask.compareMode` is used to change which mode it uses to compare.
+- `-Paffected.compareMode` is used to change which mode it uses to compare.
 The following modes are available
-  - `commit` (Default, the `-PchangedProjectsTask.commit` and `-PchangedProjectsTask.prevCommit` options are the commit ids and makes use of `~`)
-  - `branch` (`-PchangedProjectsTask.commit` and `-PchangedProjectsTask.prevCommit` are now branch names and will be used like the following `git diff --name-only prev curr`, where `curr` is `-PchangedProjectsTask.commit`)
-  - `branchTwoDotted` (`-PchangedProjectsTask.commit` and `-PchangedProjectsTask.prevCommit` are branch names and will be used like the following `git diff --name-only prev..curr`)
-  - `branchThreeDotted` (`-PchangedProjectsTask.commit` and `-PchangedProjectsTask.prevCommit` are branch names and will be used like the following `git diff --name-only prev..curr`)
+  - `commit` (Default, the `-Paffected.commit` and `-Paffected.prevCommit` options are the commit ids and makes use of `~`)
+  - `branch` (`-Paffected.commit` and `-Paffected.prevCommit` are now branch names and will be used like the following `git diff --name-only prev curr`, where `curr` is `-Paffected.commit`)
+  - `branchTwoDotted` (`-Paffected.commit` and `-Paffected.prevCommit` are branch names and will be used like the following `git diff --name-only prev..curr`)
+  - `branchThreeDotted` (`-Paffected.commit` and `-Paffected.prevCommit` are branch names and will be used like the following `git diff --name-only prev..curr`)
 
-If either `-PchangedProjectsTask.commit` and `-PchangedProjectsTask.prevCommit` is not specified when running the `runTaskForChangedProjects` command,
+If either `-Paffected.commit` and `-Paffected.prevCommit` is not specified when running the `affected` command,
 then that option simply defaults to `HEAD` if it is allowed to by the logic, otherwise an error is thrown.
 
 The following table illustrates the allowed and available options and how the resulting diff command looks
@@ -98,12 +108,12 @@ allprojects {
     }
 }
 
-changedProjectsTask {
+affectedTask {
     taskToRun = "print"
 }
 ```
 Then run the following Gradle command line   
-`runTaskForChangedProjects -PchangedProjectsTask.run`
+`affected -Paffected.run`
 
 This example will print the path of all the projects that is affected by some change and write `Task x:print SKIPPED` for those not affected.  
 You can use this to test how the plugin works and also set up the configuration of the plugin using real-world changes in your project.  
@@ -116,7 +126,7 @@ Depending on the use case it can be preferable, but if this plugin is used to sk
 
 The way to get the wanted behaviour is to run the task as the following
 ```
---continue runTaskForChangedProjects -PchangedProjectsTask.run
+--continue affected -Paffected.run
 ```
 
 This caused Gradle to execute all tasks even if the fail and still report the build as failed when it is done.
