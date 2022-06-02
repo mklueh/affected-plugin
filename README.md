@@ -1,4 +1,4 @@
-# Changed Projects Task Plugin
+# Affected Plugin
 A Gradle plugin to run a user defined task on changed projects (modules) and their dependent projects (modules) based on git changes.
 This is based on either the HEAD commit, a specific commit id or even a commit range.
 
