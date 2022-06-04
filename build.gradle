@@ -42,7 +42,7 @@ gradlePlugin {
     plugins {
         changedProjectsPlugin {
             id = 'io.github.crimix.affected-plugin'
-            implementationClass = 'io.github.crimix.changedprojectstask.ChangedProjectsPlugin'
+            implementationClass = 'io.github.crimix.changedprojectstask.AffectedPlugin'
         }
     }
 }
