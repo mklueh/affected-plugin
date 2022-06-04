@@ -26,15 +26,15 @@ public class AffectedTask {
     private boolean affectsAll = false;
 
     // may run if affected
-    private Set<Project> mayRunProjects = new HashSet<>();
+    private Set<Project> allowedToRunModules = new HashSet<>();
 
     //always run, affected or not
-    private Set<Project> alwaysRunProjects = new HashSet<>();
+    private Set<Project> alwaysRunModules = new HashSet<>();
 
     //never run, affected or not - but dependents still will
-    private Set<Project> neverRunProjects = new HashSet<>();
+    private Set<Project> neverRunModules = new HashSet<>();
 
-    private Set<Project> affectedProjects = new HashSet<>();
+    private Set<Project> affectedModules = new HashSet<>();
 
     private AffectedTask(Project project, Task affectedTask, Configuration configuration) {
         this.project = project;
@@ -59,14 +59,22 @@ public class AffectedTask {
                 if (targetTask != null) {
                     //make targetTask run after changedProjectsTask
                     affectedTask.dependsOn(targetTask);
-                    targetTask.onlyIf(t -> shouldProjectRun(p));
+                    targetTask.onlyIf(t -> shouldModuleRun(p));
                 }
             });
         }
     }
 
-    private boolean shouldProjectRun(Project p) {
-        return !neverRunProjects.contains(p) && (mayRunProjects.isEmpty() || mayRunProjects.contains(p)) && (affectsAll || affectedProjects.contains(p) || alwaysRunProjects.contains(p));
+    private boolean shouldModuleRun(Project p) {
+        if (neverRunModules.contains(p)) return false;
+
+        boolean shouldAlwaysRun = alwaysRunModules.contains(p);
+
+        boolean projectIsAllowedToRun = allowedToRunModules.isEmpty() || allowedToRunModules.contains(p);
+
+        boolean moduleOrDependentsHaveChanges = affectedModules.contains(p);
+
+        return projectIsAllowedToRun && (moduleOrDependentsHaveChanges || affectsAll || shouldAlwaysRun);
     }
 
     private void configureAfterAllEvaluate() {
@@ -104,7 +112,7 @@ public class AffectedTask {
                     }
                 }
 
-                affectedProjects = Stream.concat(directlyAffectedProjects.stream(), dependentAffectedProjects.stream()).collect(Collectors.toSet());
+                affectedModules = Stream.concat(directlyAffectedProjects.stream(), dependentAffectedProjects.stream()).collect(Collectors.toSet());
             }
         }
     }
@@ -116,23 +124,23 @@ public class AffectedTask {
     private void configureAlwaysAndNeverRun(Project project) {
         //should run no matter what
         Set<String> alwaysRunPath = configuration.getAlwaysRunProject().getOrElse(Collections.emptySet());
-        alwaysRunProjects = project.getAllprojects().stream().filter(p -> alwaysRunPath.contains(p.getPath())).collect(Collectors.toSet());
+        alwaysRunModules = project.getAllprojects().stream().filter(p -> alwaysRunPath.contains(p.getPath())).collect(Collectors.toSet());
 
         //should never run
         Set<String> neverRunPath = configuration.getNeverRunProject().getOrElse(Collections.emptySet());
-        neverRunProjects = project.getAllprojects().stream().filter(p -> neverRunPath.contains(p.getPath())).collect(Collectors.toSet());
+        neverRunModules = project.getAllprojects().stream().filter(p -> neverRunPath.contains(p.getPath())).collect(Collectors.toSet());
 
 
         //only those should be allowed to run if set
         Set<String> onlyRun = PropertiesExtractor.getEnabledModulesParameter(project)
                 .orElse(configuration.getProjects().getOrElse(Collections.emptySet()));
 
-        mayRunProjects = project.getAllprojects().stream().filter(p -> onlyRun.contains(p.getName())).collect(Collectors.toSet());
+        allowedToRunModules = project.getAllprojects().stream().filter(p -> onlyRun.contains(p.getName())).collect(Collectors.toSet());
 
         if (LogUtil.shouldLog(configuration)) {
-            logger.lifecycle("May run projects: {}", mayRunProjects);
-            logger.lifecycle("Never run projects: {}", neverRunProjects);
-            logger.lifecycle("Always run projects: {}", alwaysRunProjects);
+            logger.lifecycle("May run projects: {}", allowedToRunModules);
+            logger.lifecycle("Never run projects: {}", neverRunModules);
+            logger.lifecycle("Always run projects: {}", alwaysRunModules);
         }
     }
 
