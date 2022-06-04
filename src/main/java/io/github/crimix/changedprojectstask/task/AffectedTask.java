@@ -128,7 +128,7 @@ public class AffectedTask {
 
         //should never run
         Set<String> neverRunPath = configuration.getNeverRunProject().getOrElse(Collections.emptySet());
-        neverRunModules = project.getAllprojects().stream().filter(p -> neverRunPath.contains(p.getPath())).collect(Collectors.toSet());
+        neverRunModules = project.getAllprojects().stream().filter(p -> neverRunPath.contains(p.getName())).collect(Collectors.toSet());
 
 
         //only those should be allowed to run if set
