@@ -51,6 +51,10 @@ public class AffectedTask {
         project.getGradle().projectsEvaluated(g -> affectedTask.configureAfterAllEvaluate());
     }
 
+    /**
+     * TODO determine everything that should run before looping through the projects and run the actual task.
+     * Testability
+     */
     private void configureTargetTasksForProjects() {
         for (Project project : project.getAllprojects()) {
             project.afterEvaluate(p -> {
@@ -59,7 +63,14 @@ public class AffectedTask {
                 if (targetTask != null) {
                     //make targetTask run after changedProjectsTask
                     affectedTask.dependsOn(targetTask);
-                    targetTask.onlyIf(t -> shouldModuleRun(p));
+                    targetTask.onlyIf(t -> {
+                        boolean willRun = shouldModuleRun(p);
+
+                        if (willRun)
+                            logger.lifecycle("################# Task " + t.getName() + " will run for project " + p.getName() + " #################");
+
+                        return willRun;
+                    });
                 }
             });
         }
