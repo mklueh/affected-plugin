@@ -37,14 +37,14 @@ public interface Configuration {
      *
      * @return a list of project paths
      */
-    SetProperty<String> getAlwaysRunProject();
+    SetProperty<String> getAlwaysRunProjects();
 
     /**
      * The projects to never execute the task on even when it has changed.
      *
      * @return a list of project paths
      */
-    SetProperty<String> getNeverRunProject();
+    SetProperty<String> getNeverRunProjects();
 
 
     /**

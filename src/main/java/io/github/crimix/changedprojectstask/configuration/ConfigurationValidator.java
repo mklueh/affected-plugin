@@ -21,7 +21,7 @@ public class ConfigurationValidator {
             throw new IllegalArgumentException("changedProjectsTask: taskToRun should not start with :");
         }
 
-        Set<String> projectsAlwaysRun = configuration.getAlwaysRunProject().getOrElse(Collections.emptySet());
+        Set<String> projectsAlwaysRun = configuration.getAlwaysRunProjects().getOrElse(Collections.emptySet());
 
         for (String project : projectsAlwaysRun) {
             if (!project.startsWith(":")) {

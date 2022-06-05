@@ -32,7 +32,7 @@ public class AffectedTask {
     private Set<Project> alwaysRunModules = new HashSet<>();
 
     //never run, affected or not - but dependents still will
-    private Set<Project> neverRunModules = new HashSet<>();
+    private Set<Project> notAllowedToRunModules = new HashSet<>();
 
     private Set<Project> affectedModules = new HashSet<>();
 
@@ -66,7 +66,7 @@ public class AffectedTask {
     }
 
     private boolean shouldModuleRun(Project p) {
-        if (neverRunModules.contains(p)) return false;
+        if (notAllowedToRunModules.contains(p)) return false;
 
         boolean shouldAlwaysRun = alwaysRunModules.contains(p);
 
@@ -123,23 +123,23 @@ public class AffectedTask {
 
     private void configureAlwaysAndNeverRun(Project project) {
         //should run no matter what
-        Set<String> alwaysRunPath = configuration.getAlwaysRunProject().getOrElse(Collections.emptySet());
+        Set<String> alwaysRunPath = configuration.getAlwaysRunProjects().getOrElse(Collections.emptySet());
         alwaysRunModules = project.getAllprojects().stream().filter(p -> alwaysRunPath.contains(p.getPath())).collect(Collectors.toSet());
 
         //should never run
-        Set<String> neverRunPath = configuration.getNeverRunProject().getOrElse(Collections.emptySet());
-        neverRunModules = project.getAllprojects().stream().filter(p -> neverRunPath.contains(p.getName())).collect(Collectors.toSet());
+        Set<String> notAllowedToRun = configuration.getNeverRunProjects().getOrElse(Collections.emptySet());
+        notAllowedToRunModules = project.getAllprojects().stream().filter(p -> notAllowedToRun.contains(p.getName())).collect(Collectors.toSet());
 
 
         //only those should be allowed to run if set
-        Set<String> onlyRun = PropertiesExtractor.getEnabledModulesParameter(project)
+        Set<String> allowedToRun = PropertiesExtractor.getEnabledModulesParameter(project)
                 .orElse(configuration.getProjects().getOrElse(Collections.emptySet()));
 
-        allowedToRunModules = project.getAllprojects().stream().filter(p -> onlyRun.contains(p.getName())).collect(Collectors.toSet());
+        allowedToRunModules = project.getAllprojects().stream().filter(p -> allowedToRun.contains(p.getName())).collect(Collectors.toSet());
 
         if (LogUtil.shouldLog(configuration)) {
             logger.lifecycle("May run projects: {}", allowedToRunModules);
-            logger.lifecycle("Never run projects: {}", neverRunModules);
+            logger.lifecycle("Never run projects: {}", this.notAllowedToRunModules);
             logger.lifecycle("Always run projects: {}", alwaysRunModules);
         }
     }
