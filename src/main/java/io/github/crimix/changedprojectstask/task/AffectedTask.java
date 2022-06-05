@@ -26,15 +26,15 @@ public class AffectedTask {
     private boolean affectsAll = false;
 
     // may run if affected
-    private Set<Project> allowedToRunModules = new HashSet<>();
+    private Set<Project> allowedToRunProjects = new HashSet<>();
 
     //always run, affected or not
-    private Set<Project> alwaysRunModules = new HashSet<>();
+    private Set<Project> alwaysRunProjects = new HashSet<>();
 
     //never run, affected or not - but dependents still will
-    private Set<Project> notAllowedToRunModules = new HashSet<>();
+    private Set<Project> neverRunProjects = new HashSet<>();
 
-    private Set<Project> affectedModules = new HashSet<>();
+    private Set<Project> affectedProjects = new HashSet<>();
 
     private AffectedTask(Project project, Task affectedTask, Configuration configuration) {
         this.project = project;
@@ -66,13 +66,13 @@ public class AffectedTask {
     }
 
     private boolean shouldModuleRun(Project p) {
-        if (notAllowedToRunModules.contains(p)) return false;
+        if (neverRunProjects.contains(p)) return false;
 
-        boolean shouldAlwaysRun = alwaysRunModules.contains(p);
+        boolean shouldAlwaysRun = alwaysRunProjects.contains(p);
 
-        boolean projectIsAllowedToRun = allowedToRunModules.isEmpty() || allowedToRunModules.contains(p);
+        boolean projectIsAllowedToRun = allowedToRunProjects.isEmpty() || allowedToRunProjects.contains(p);
 
-        boolean moduleOrDependentsHaveChanges = affectedModules.contains(p);
+        boolean moduleOrDependentsHaveChanges = affectedProjects.contains(p);
 
         return projectIsAllowedToRun && (moduleOrDependentsHaveChanges || affectsAll || shouldAlwaysRun);
     }
@@ -112,7 +112,7 @@ public class AffectedTask {
                     }
                 }
 
-                affectedModules = Stream.concat(directlyAffectedProjects.stream(), dependentAffectedProjects.stream()).collect(Collectors.toSet());
+                affectedProjects = Stream.concat(directlyAffectedProjects.stream(), dependentAffectedProjects.stream()).collect(Collectors.toSet());
             }
         }
     }
@@ -124,23 +124,23 @@ public class AffectedTask {
     private void configureAlwaysAndNeverRun(Project project) {
         //should run no matter what
         Set<String> alwaysRunPath = configuration.getAlwaysRunProjects().getOrElse(Collections.emptySet());
-        alwaysRunModules = project.getAllprojects().stream().filter(p -> alwaysRunPath.contains(p.getPath())).collect(Collectors.toSet());
+        alwaysRunProjects = project.getAllprojects().stream().filter(p -> alwaysRunPath.contains(p.getPath())).collect(Collectors.toSet());
 
         //should never run
         Set<String> notAllowedToRun = configuration.getNeverRunProjects().getOrElse(Collections.emptySet());
-        notAllowedToRunModules = project.getAllprojects().stream().filter(p -> notAllowedToRun.contains(p.getName())).collect(Collectors.toSet());
+        neverRunProjects = project.getAllprojects().stream().filter(p -> notAllowedToRun.contains(p.getName())).collect(Collectors.toSet());
 
 
         //only those should be allowed to run if set
         Set<String> allowedToRun = PropertiesExtractor.getEnabledModulesParameter(project)
                 .orElse(configuration.getProjects().getOrElse(Collections.emptySet()));
 
-        allowedToRunModules = project.getAllprojects().stream().filter(p -> allowedToRun.contains(p.getName())).collect(Collectors.toSet());
+        allowedToRunProjects = project.getAllprojects().stream().filter(p -> allowedToRun.contains(p.getName())).collect(Collectors.toSet());
 
         if (LogUtil.shouldLog(configuration)) {
-            logger.lifecycle("May run projects: {}", allowedToRunModules);
-            logger.lifecycle("Never run projects: {}", this.notAllowedToRunModules);
-            logger.lifecycle("Always run projects: {}", alwaysRunModules);
+            logger.lifecycle("May run projects: {}", allowedToRunProjects);
+            logger.lifecycle("Never run projects: {}", this.neverRunProjects);
+            logger.lifecycle("Always run projects: {}", alwaysRunProjects);
         }
     }
 
