@@ -56,7 +56,8 @@ public class ProjectDependencyProvider {
                 .collect(Collectors.toSet());
     }
 
-    public Project getChangedProject(File file) {
+    public Project findProjectOfChangedFile(File file) {
+
         String filePath = file.getPath();
         if (!filePath.contains(Extension.getProjectDirName(project.getRootProject()) + File.separator)) {
             return null; //We return null here as there is no need to try and step though the map
@@ -77,7 +78,11 @@ public class ProjectDependencyProvider {
         }
 
         // We now have the project the file change belong to
-        return currentNode.getProject();
+        Project affectedProject = currentNode.getProject();
+
+        logger.lifecycle("Changed file: " + file.getAbsolutePath() + " of affected project " + affectedProject.getPath());
+
+        return affectedProject;
     }
 
     public Set<Project> getAffectedDependentProjects(Set<Project> directlyChangedProjects) {

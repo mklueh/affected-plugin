@@ -50,10 +50,13 @@ public class ChangedFilesProvider {
         CollectingOutputStream stdout = new CollectingOutputStream();
         CollectingOutputStream stderr = new CollectingOutputStream();
         //We use Apache Commons Exec because we do not want to re-invent the wheel as ProcessBuilder hangs if the output or error buffer is full
+
+
         DefaultExecutor exec = new DefaultExecutor();
         exec.setStreamHandler(new PumpStreamHandler(stdout, stderr));
         exec.setWorkingDirectory(gitRoot);
-        exec.execute(CommandLine.parse(gitCommandProvider.getGitDiffCommand()));
+        String gitDiffCommand = gitCommandProvider.getGitDiffCommand();
+        exec.execute(CommandLine.parse(gitDiffCommand));
 
         if (stderr.isNotEmpty()) {
             throw new IllegalStateException(String.format("Failed to run git diff because of \n%s", stdout));
@@ -65,6 +68,7 @@ public class ChangedFilesProvider {
 
         //Create a single predicate from the ignored regexes such that we can use a simple filter
         Predicate<String> filter = createIgnoredFilter();
+
 
         //Filter and return the list
         return stdout.getLines().stream()

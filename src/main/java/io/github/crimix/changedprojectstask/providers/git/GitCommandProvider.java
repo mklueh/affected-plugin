@@ -22,6 +22,10 @@ public class GitCommandProvider {
 
     // The default if no commit ids have been specified
     private static final String HEAD = "HEAD";
+
+    /**
+     * Uncommitted changes + last commit:  git diff --name-only HEAD~
+     */
     private static final String BASE_DIFF_COMMAND = "git diff --name-only";
 
     private final Project project;

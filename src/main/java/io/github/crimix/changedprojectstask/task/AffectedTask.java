@@ -129,7 +129,11 @@ public class AffectedTask {
     }
 
     private Set<Project> evaluateDirectAffectedProjects(ChangedFilesProvider changedFilesProvider, ProjectDependencyProvider projectDependencyProvider) {
-        return changedFilesProvider.getChangedFiles().stream().map(projectDependencyProvider::getChangedProject).filter(Objects::nonNull).collect(Collectors.toSet());
+        return changedFilesProvider
+                .getChangedFiles()
+                .stream()
+                .map(projectDependencyProvider::findProjectOfChangedFile)
+                .filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
     private void configureAlwaysAndNeverRun(Project project) {
@@ -149,7 +153,7 @@ public class AffectedTask {
         allowedToRunProjects = project.getAllprojects().stream().filter(p -> allowedToRun.contains(p.getName())).collect(Collectors.toSet());
 
         if (LogUtil.shouldLog(configuration)) {
-            logger.lifecycle("May run projects: {}", allowedToRunProjects);
+            logger.lifecycle("Projects allowed to run: {}", allowedToRunProjects);
             logger.lifecycle("Never run projects: {}", this.neverRunProjects);
             logger.lifecycle("Always run projects: {}", alwaysRunProjects);
         }
