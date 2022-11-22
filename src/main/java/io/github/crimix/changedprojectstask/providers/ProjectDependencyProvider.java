@@ -45,6 +45,9 @@ public class ProjectDependencyProvider {
                 .collect(Collectors.groupingBy(Pair::getKey, Collectors.mapping(Pair::getValue, Collectors.toSet())));
     }
 
+    /**
+     *
+     */
     private Set<Pair<Project, Project>> getProjectDependencies(Project subproject) {
         //We use a pair, because we want the project that is a dependency together with the project it is a dependency for
         return subproject.getConfigurations().stream()
@@ -57,7 +60,6 @@ public class ProjectDependencyProvider {
     }
 
     public Project findProjectOfChangedFile(File file) {
-
         String filePath = file.getPath();
         if (!filePath.contains(Extension.getProjectDirName(project.getRootProject()) + File.separator)) {
             return null; //We return null here as there is no need to try and step though the map

@@ -119,12 +119,16 @@ public class ChangedFilesProvider {
         return changedFiles;
     }
 
+    public boolean hasFileChanges(){
+        return !changedFiles.isEmpty();
+    }
+
     /**
      * Returns whether all projects are affected by the changes specified by the plugin configuration
      *
      * @return true if all projects are affected
      */
-    public boolean isAllProjectsAffected() {
+    public boolean allProjectsAffected() {
         return affectsAllProjects;
     }
 
@@ -134,7 +138,7 @@ public class ChangedFilesProvider {
     public void printDebug() {
         if (LogUtil.shouldLog(configuration)) {
             logger.lifecycle("Git diff command uses {}", gitCommandProvider.getGitDiffCommand());
-            logger.lifecycle("All projects affected? {}", isAllProjectsAffected());
+            logger.lifecycle("All projects affected? {}", allProjectsAffected());
             logger.lifecycle("Changed files:");
             changedFiles.forEach(file -> logger.lifecycle(file.toString()));
             logger.lifecycle("");

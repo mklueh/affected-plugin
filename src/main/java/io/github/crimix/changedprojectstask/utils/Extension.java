@@ -31,7 +31,7 @@ public class Extension {
      *
      * @return true if the plugin's task is allowed to run and configure
      */
-    public static boolean hasBeenEnabled(Project project) {
+    public static boolean isAffectedPluginEnabled(Project project) {
         return project.getRootProject().hasProperty(ENABLE);
     }
 }
