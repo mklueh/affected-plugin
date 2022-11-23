@@ -12,7 +12,7 @@ public class ConfigurationValidator {
     /**
      * Runs validation on the configuration.
      */
-    public static void validate(Configuration configuration, Project rootProject) {
+    public static void validate(AffectedExtension configuration, Project rootProject) {
         String taskToRun = configuration.getTarget().getOrNull();
 
         if (taskToRun == null && PropertiesExtractor.getTargetTaskParameter(rootProject).isEmpty()) {

@@ -1,6 +1,6 @@
 package io.github.crimix.changedprojectstask.providers;
 
-import io.github.crimix.changedprojectstask.configuration.Configuration;
+import io.github.crimix.changedprojectstask.configuration.AffectedExtension;
 import io.github.crimix.changedprojectstask.utils.Extension;
 import io.github.crimix.changedprojectstask.utils.LogUtil;
 import io.github.crimix.changedprojectstask.utils.Pair;
@@ -23,11 +23,11 @@ public class ProjectDependencyProvider {
 
     private final Logger logger;
     private final Project project;
-    private final Configuration configuration;
+    private final AffectedExtension configuration;
     private final Map<Project, Set<Project>> projectDependentsMap;
     private final ProjectNode rootNode;
 
-    public ProjectDependencyProvider(Project project, Configuration configuration) {
+    public ProjectDependencyProvider(Project project, AffectedExtension configuration) {
         this.project = project;
         this.logger = project.getLogger();
         this.configuration = configuration;

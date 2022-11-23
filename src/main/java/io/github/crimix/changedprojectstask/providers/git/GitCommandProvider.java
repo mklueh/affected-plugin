@@ -1,6 +1,6 @@
 package io.github.crimix.changedprojectstask.providers.git;
 
-import io.github.crimix.changedprojectstask.configuration.Configuration;
+import io.github.crimix.changedprojectstask.configuration.AffectedExtension;
 import io.github.crimix.changedprojectstask.configuration.PropertiesExtractor;
 import lombok.experimental.ExtensionMethod;
 import org.gradle.api.Project;
@@ -29,9 +29,9 @@ public class GitCommandProvider {
     private static final String BASE_DIFF_COMMAND = "git diff --name-only";
 
     private final Project project;
-    private final Configuration configuration;
+    private final AffectedExtension configuration;
 
-    public GitCommandProvider(Project project, Configuration configuration) {
+    public GitCommandProvider(Project project, AffectedExtension configuration) {
         this.project = project;
         this.logger = project.getLogger();
         this.configuration = configuration;

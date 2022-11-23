@@ -9,7 +9,7 @@ API of NX used for frontend projects. See [https://nx.dev/using-nx/affected](htt
 It has a slightly different API than the original. For example, this command would run the task **release** for the applications **applicationModuleA** and **applicationModuleB** in case they or their dependent modules have changed
 
 ```shell
- ./gradlew --continue affected -Paffected.run -Paffected.target=release \
+ ./gradlew --continue affected -Paffected.target=release \
   -Paffected.projects=applicationModuleA,applicationModuleB
 ```
 

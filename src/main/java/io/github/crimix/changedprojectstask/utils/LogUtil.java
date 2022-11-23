@@ -1,6 +1,6 @@
 package io.github.crimix.changedprojectstask.utils;
 
-import io.github.crimix.changedprojectstask.configuration.Configuration;
+import io.github.crimix.changedprojectstask.configuration.AffectedExtension;
 import io.github.crimix.changedprojectstask.configuration.PropertiesExtractor;
 import org.gradle.api.logging.Logger;
 
@@ -15,7 +15,7 @@ public class LogUtil {
      *
      * @param logger the logger to print the configuration to.
      */
-    public static void print(Configuration configuration, Logger logger) {
+    public static void print(AffectedExtension configuration, Logger logger) {
         if (shouldLog(configuration)) {
             logger.lifecycle("Printing configuration");
             logger.lifecycle("Task to run {}", configuration.getTarget().getOrNull());
@@ -33,7 +33,7 @@ public class LogUtil {
      *
      * @return true if the plugin should debug log
      */
-    public static boolean shouldLog(Configuration configuration) {
+    public static boolean shouldLog(AffectedExtension configuration) {
         return configuration.getDebugLogging().getOrElse(false);
     }
 }

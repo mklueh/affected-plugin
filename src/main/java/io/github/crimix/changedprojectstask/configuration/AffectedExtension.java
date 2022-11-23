@@ -6,9 +6,10 @@ import org.gradle.api.provider.SetProperty;
 import java.util.regex.Pattern;
 
 /**
- * The configuration that the user of the plugin can change to affect the behavior of the plugin
+ * The configuration that the user of the plugin can change to affect
+ * the behavior of the plugin
  */
-public interface Configuration {
+public interface AffectedExtension {
 
     /**
      * If the plugin should log stuff like changed files and identified project dependencies.

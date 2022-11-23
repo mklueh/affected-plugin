@@ -7,6 +7,7 @@ package io.github.crimix.changedprojectstask.configuration;
 public class Properties {
     private static final String PREFIX = "affected.";
 
+    //TODO try to get rid of this unnecessary property
     public static final String ENABLE = PREFIX + "run";
 
     public static final String CURRENT_COMMIT = PREFIX + "commit";

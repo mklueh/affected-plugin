@@ -1,13 +1,10 @@
 package io.github.crimix.changedprojectstask;
 
-import io.github.crimix.changedprojectstask.configuration.AffectedMode;
-import io.github.crimix.changedprojectstask.configuration.Configuration;
-import io.github.crimix.changedprojectstask.configuration.PropertiesExtractor;
+import io.github.crimix.changedprojectstask.configuration.*;
 import io.github.crimix.changedprojectstask.providers.ChangedFilesProvider;
 import io.github.crimix.changedprojectstask.providers.ProjectDependencyProvider;
 import io.github.crimix.changedprojectstask.utils.Extension;
 import io.github.crimix.changedprojectstask.utils.LogUtil;
-import io.github.crimix.changedprojectstask.configuration.ConfigurationValidator;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.logging.Logger;
@@ -24,7 +21,8 @@ public class AffectedTaskRunner {
     private final Logger logger;
     private final Project project;
     private final Task affectedTask;
-    private final Configuration configuration;
+    private AffectedProjectExtension extension;
+    private final AffectedExtension configuration;
 
     private boolean affectsAll = false;
 
@@ -39,14 +37,15 @@ public class AffectedTaskRunner {
 
     private Set<Project> affectedProjects = new HashSet<>();
 
-    private AffectedTaskRunner(Project project, Task affectedTask, Configuration configuration) {
+    private AffectedTaskRunner(Project project, Task affectedTask, AffectedExtension configuration) {
         this.project = project;
         this.logger = project.getLogger();
         this.configuration = configuration;
         this.affectedTask = affectedTask;
+        this.extension = extension;
     }
 
-    public static void configureAndRun(Project project, Task task, Configuration configuration) {
+    public static void configureAndRun(Project project, Task task, AffectedExtension configuration) {
         AffectedTaskRunner affectedTaskRunner = new AffectedTaskRunner(project, task, configuration);
 
         affectedTaskRunner.configureTargetTasksForProjects();
@@ -60,48 +59,73 @@ public class AffectedTaskRunner {
      * Testability
      */
     private void configureTargetTasksForProjects() {
-        if (allowedToRunProjects.isEmpty()) return;
-
         for (Project project : project.getAllprojects()) {
+
+            AffectedProjectExtension extension = project.getExtensions()
+                    .create("affectedProject", AffectedProjectExtension.class);
+
+            extension.getIsRunnableProject().convention(false);
+
+
+
             project.afterEvaluate(p -> {
+
                 Task targetTask = p.getTasks().findByPath(resolvePathToTargetTask(p));
 
-                if (targetTask != null) {
-                    //make targetTask run after changedProjectsTask
-                    affectedTask.dependsOn(targetTask);
+                if (targetTask == null) throw new RuntimeException("affected plugin called without target task");
 
-                    //conditionally enable / disable the specific project's task
-                    targetTask.onlyIf(t -> {
-                        boolean willRun = shouldModuleRun(p);
+                logger.lifecycle(targetTask.getPath());
 
-                        if (willRun)
-                            logger.lifecycle("################# Task " +
-                                    t.getName() + " will run for project " +
-                                    p.getName() + " #################"
-                            );
-
-                        return willRun;
-                    });
+                if (!extension.getEnabled().getOrElse(true)) {
+                    logger.lifecycle("affected plugin: disabled for " + p.getName());
+                    return;
                 }
+
+
+                //is it a problem that it depends on multiple tasks at the same time?
+                //make targetTask run after changedProjectsTask
+                affectedTask.dependsOn(targetTask);
+
+                //conditionally enable / disable the specific project's task
+                targetTask.onlyIf(t -> {
+
+                    if (true) return false;
+                    //preventing conditions
+                    if (neverRunProjects.contains(p)) {
+                        logger.lifecycle("affected plugin: " + p.getName() + " won't run - (neverRun)");
+                        return false;
+                    }
+
+                    if (!allowedToRunProjects.contains(p)) return false;
+
+                    if (!extension.getIsRunnableProject().getOrElse(false)) {
+                        logger.lifecycle("affected plugin: " + p.getName() + " won't run - (is no runnable project)");
+                        return false;
+                    } else
+                        logger.lifecycle("affected plugin: " + p.getName() + " runs because affectedProject config enabled");
+
+                    boolean willRun = false;
+
+                    //allowing conditions
+                    //noinspection RedundantIfStatement
+                    if (affectsAll) {
+                        //willRun = true;
+                    }
+                    if (alwaysRunProjects.contains(p)) {
+                        willRun = true;
+                    }
+                    if (affectedProjects.contains(p)) {
+                        logger.lifecycle("affected plugin: " + p.getName() + " is affected ##################################################################");
+                        willRun = true;
+                    }
+
+                    if (willRun) logger.lifecycle("### Task " + t.getName() + " will run for " + p.getName() + " ####");
+                    else logger.lifecycle(t.getName() + " will not run");
+
+                    return willRun;
+                });
             });
         }
-    }
-
-    /**
-     * Determine for each project if it should be triggered or not
-     */
-    @SuppressWarnings("RedundantIfStatement")
-    private boolean shouldModuleRun(Project p) {
-        //preventing conditions
-        if (neverRunProjects.contains(p)) return false;
-        if (!allowedToRunProjects.contains(p)) return false;
-
-        //allowing conditions
-        if (affectsAll) return true;
-        if (alwaysRunProjects.contains(p)) return true;
-        if (affectedProjects.contains(p)) return true;
-
-        return false;
     }
 
     /**
@@ -111,34 +135,43 @@ public class AffectedTaskRunner {
         Project project = getRootProject();
         ConfigurationValidator.validate(configuration, project);
 
-        if (!isAffectedPluginEnabled()) return;
+        if (!isAffectedPluginEnabled()) {
+            logger.lifecycle("affected plugin: disabled");
+            return;
+        }
 
         ChangedFilesProvider changedFilesProvider = new ChangedFilesProvider(project, configuration);
         changedFilesProvider.printDebug();
 
-        if (!changedFilesProvider.hasFileChanges()) return;
-        if (!changedFilesProvider.allProjectsAffected()) {
-            affectsAll = true;
+        if (!changedFilesProvider.hasFileChanges()) {
+            logger.lifecycle("affected plugin: no changed files detected");
             return;
         }
 
+        //must be called before termination if all affected
         determineEligibleProjectsBasedOnProperties(project);
 
+        if (changedFilesProvider.allProjectsAffected()) {
+            affectsAll = true;
+            logger.lifecycle("affected plugin: all projects are affected");
+            return;
+        }
 
         ProjectDependencyProvider projectDependencyProvider = new ProjectDependencyProvider(project, configuration);
         projectDependencyProvider.printDebug();
 
         Set<Project> directlyAffectedProjects = findAffectedProjects(changedFilesProvider, projectDependencyProvider);
 
+        //TODO which file affects which projects?
         if (LogUtil.shouldLog(configuration)) {
-            logger.lifecycle("Directly affected projects: {}", directlyAffectedProjects);
+            logger.lifecycle("affected plugin: directly affected projects: {}", directlyAffectedProjects);
         }
 
         Set<Project> dependentAffectedProjects = new HashSet<>();
         if (AffectedMode.INCLUDE_DEPENDENTS == PropertiesExtractor.getPluginMode(configuration)) {
             dependentAffectedProjects.addAll(projectDependencyProvider.getAffectedDependentProjects(directlyAffectedProjects));
             if (LogUtil.shouldLog(configuration)) {
-                logger.lifecycle("Dependent affected Projects: {}", dependentAffectedProjects);
+                logger.lifecycle("affected plugin: dependent affected Projects: {}", dependentAffectedProjects);
             }
         }
 
@@ -166,11 +199,15 @@ public class AffectedTaskRunner {
         Set<String> notAllowedToRun = configuration.getNeverRunProjects().getOrElse(Collections.emptySet());
         neverRunProjects = allProjects.stream().filter(p -> notAllowedToRun.contains(p.getName())).collect(Collectors.toSet());
 
+        logger.lifecycle("affected plugin: never run projects size - " + neverRunProjects.size());
 
         //only those should be allowed to run if set
         Set<String> allowedToRun = PropertiesExtractor.getEnabledModulesParameter(project)
                 .orElse(configuration.getProjects().getOrElse(Collections.emptySet()));
+
         allowedToRunProjects = allProjects.stream().filter(p -> allowedToRun.contains(p.getName())).collect(Collectors.toSet());
+        logger.lifecycle("affected plugin: allowedToRun - " + allowedToRunProjects.stream().map(Project::getName)
+                .collect(Collectors.joining(",")));
 
         if (LogUtil.shouldLog(configuration)) {
             logger.lifecycle("Projects allowed to run: {}", allowedToRunProjects);

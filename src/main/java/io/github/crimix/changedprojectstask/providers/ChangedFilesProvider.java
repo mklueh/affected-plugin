@@ -1,6 +1,6 @@
 package io.github.crimix.changedprojectstask.providers;
 
-import io.github.crimix.changedprojectstask.configuration.Configuration;
+import io.github.crimix.changedprojectstask.configuration.AffectedExtension;
 import io.github.crimix.changedprojectstask.providers.git.GitCommandProvider;
 import io.github.crimix.changedprojectstask.utils.CollectingOutputStream;
 import io.github.crimix.changedprojectstask.providers.git.GitUtil;
@@ -23,12 +23,12 @@ public class ChangedFilesProvider {
 
     private final Logger logger;
     private final Project project;
-    private final Configuration configuration;
+    private final AffectedExtension configuration;
     private final GitCommandProvider gitCommandProvider;
     private final List<File> changedFiles;
     private final boolean affectsAllProjects;
 
-    public ChangedFilesProvider(Project project, Configuration configuration) {
+    public ChangedFilesProvider(Project project, AffectedExtension configuration) {
         this.project = project;
         this.logger = project.getLogger();
         this.configuration = configuration;
