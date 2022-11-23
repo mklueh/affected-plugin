@@ -1,7 +1,7 @@
-package io.github.crimix.changedprojectstask.providers;
+package io.github.mklueh.affected.providers;
 
-import io.github.crimix.changedprojectstask.providers.git.GitCommandProvider;
-import io.github.crimix.changedprojectstask.providers.git.GitDiffMode;
+import io.github.mklueh.affected.providers.git.GitCommandProvider;
+import io.github.mklueh.affected.providers.git.GitDiffMode;
 import org.assertj.core.api.Assertions;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;

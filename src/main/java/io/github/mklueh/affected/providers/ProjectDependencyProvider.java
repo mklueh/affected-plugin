@@ -1,10 +1,10 @@
-package io.github.crimix.changedprojectstask.providers;
+package io.github.mklueh.affected.providers;
 
-import io.github.crimix.changedprojectstask.configuration.AffectedExtension;
-import io.github.crimix.changedprojectstask.utils.Extension;
-import io.github.crimix.changedprojectstask.utils.LogUtil;
-import io.github.crimix.changedprojectstask.utils.Pair;
-import io.github.crimix.changedprojectstask.utils.ProjectNode;
+import io.github.mklueh.affected.configuration.AffectedExtension;
+import io.github.mklueh.affected.utils.Extension;
+import io.github.mklueh.affected.utils.LogUtil;
+import io.github.mklueh.affected.utils.Pair;
+import io.github.mklueh.affected.utils.ProjectNode;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.logging.Logger;

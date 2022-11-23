@@ -1,10 +1,10 @@
-package io.github.crimix.changedprojectstask.providers;
+package io.github.mklueh.affected.providers;
 
-import io.github.crimix.changedprojectstask.configuration.AffectedExtension;
-import io.github.crimix.changedprojectstask.providers.git.GitCommandProvider;
-import io.github.crimix.changedprojectstask.utils.CollectingOutputStream;
-import io.github.crimix.changedprojectstask.providers.git.GitUtil;
-import io.github.crimix.changedprojectstask.utils.LogUtil;
+import io.github.mklueh.affected.configuration.AffectedExtension;
+import io.github.mklueh.affected.providers.git.GitCommandProvider;
+import io.github.mklueh.affected.utils.CollectingOutputStream;
+import io.github.mklueh.affected.providers.git.GitUtil;
+import io.github.mklueh.affected.utils.LogUtil;
 import lombok.SneakyThrows;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;

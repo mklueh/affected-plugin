@@ -1,4 +1,4 @@
-package io.github.crimix.changedprojectstask.configuration;
+package io.github.mklueh.affected.configuration;
 
 import org.gradle.api.Project;
 
@@ -16,9 +16,9 @@ public class ConfigurationValidator {
         String taskToRun = configuration.getTarget().getOrNull();
 
         if (taskToRun == null && PropertiesExtractor.getTargetTaskParameter(rootProject).isEmpty()) {
-            throw new IllegalArgumentException("changedProjectsTask: taskToRun is required");
+            throw new IllegalArgumentException("changedProjectsTask: target task is required");
         } else if (taskToRun != null && taskToRun.startsWith(":")) {
-            throw new IllegalArgumentException("changedProjectsTask: taskToRun should not start with :");
+            throw new IllegalArgumentException("changedProjectsTask: target task should not start with :");
         }
 
         Set<String> projectsAlwaysRun = configuration.getAlwaysRunProjects().getOrElse(Collections.emptySet());

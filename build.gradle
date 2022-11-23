@@ -11,7 +11,7 @@ plugins {
     id 'maven-publish'
 }
 
-group 'io.github.crimix'
+group 'io.github.mklueh'
 version '1.3'
 
 java {
@@ -41,20 +41,20 @@ test {
 gradlePlugin {
     plugins {
         changedProjectsPlugin {
-            id = 'io.github.crimix.affected-plugin'
-            implementationClass = 'io.github.crimix.changedprojectstask.AffectedPlugin'
+            id = 'io.github.mklueh.affected-plugin'
+            implementationClass = 'io.github.mklueh.affected.AffectedPlugin'
         }
     }
 }
 
 pluginBundle {
-    website = 'https://github.com/Crimix/ChangedProjectsTaskPlugin'
-    vcsUrl = 'https://github.com/Crimix/ChangedProjectsTaskPlugin'
+    website = 'https://github.com/mklueh/affected-plugin'
+    vcsUrl = 'https://github.com/mklueh/affected-plugin'
 
     plugins {
         changedProjectsPlugin {
             // id is captured from java-gradle-plugin configuration
-            displayName = 'Changed Projects Task Plugin'
+            displayName = 'Affected Plugin'
             description = 'A Gradle plugin to run a user defined task on changed projects (modules) and their dependent projects (modules)'
             tags = ['git', 'project dependencies', 'task', 'changed projects', 'changed modules']
         }

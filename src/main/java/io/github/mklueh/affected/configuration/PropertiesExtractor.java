@@ -1,11 +1,11 @@
-package io.github.crimix.changedprojectstask.configuration;
+package io.github.mklueh.affected.configuration;
 
 import org.gradle.api.Project;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.github.crimix.changedprojectstask.configuration.Properties.*;
+import static io.github.mklueh.affected.configuration.Properties.*;
 
 /**
  * Extractor for CLI arguments

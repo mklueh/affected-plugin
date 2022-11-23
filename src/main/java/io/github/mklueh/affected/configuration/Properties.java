@@ -1,4 +1,4 @@
-package io.github.crimix.changedprojectstask.configuration;
+package io.github.mklueh.affected.configuration;
 
 /**
  * Configurable properies that can be used in gralde using the -P prefix

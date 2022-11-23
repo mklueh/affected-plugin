@@ -1,4 +1,4 @@
-package io.github.crimix.changedprojectstask.utils;
+package io.github.mklueh.affected.utils;
 
 import lombok.experimental.ExtensionMethod;
 import org.gradle.api.Project;

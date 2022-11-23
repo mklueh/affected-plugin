@@ -1,8 +1,8 @@
-package io.github.crimix.changedprojectstask.utils;
+package io.github.mklueh.affected.utils;
 
 import org.gradle.api.Project;
 
-import static io.github.crimix.changedprojectstask.configuration.Properties.ENABLE;
+import static io.github.mklueh.affected.configuration.Properties.ENABLE;
 
 /**
  * Created by Marian at 26.05.2022

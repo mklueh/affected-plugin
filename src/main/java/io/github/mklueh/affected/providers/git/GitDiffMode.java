@@ -1,4 +1,4 @@
-package io.github.crimix.changedprojectstask.providers.git;
+package io.github.mklueh.affected.providers.git;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;

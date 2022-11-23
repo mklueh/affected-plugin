@@ -1,12 +1,12 @@
-package io.github.crimix.changedprojectstask.providers.git;
+package io.github.mklueh.affected.providers.git;
 
-import io.github.crimix.changedprojectstask.configuration.PropertiesExtractor;
+import io.github.mklueh.affected.configuration.PropertiesExtractor;
 import org.gradle.api.Project;
 
 import java.io.File;
 import java.util.Optional;
 
-import static io.github.crimix.changedprojectstask.configuration.Properties.*;
+import static io.github.mklueh.affected.configuration.Properties.*;
 
 /**
  * Created by Marian at 26.05.2022

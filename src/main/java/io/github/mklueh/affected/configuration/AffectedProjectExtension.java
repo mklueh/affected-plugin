@@ -1,4 +1,4 @@
-package io.github.crimix.changedprojectstask.configuration;
+package io.github.mklueh.affected.configuration;
 
 import org.gradle.api.provider.Property;
 

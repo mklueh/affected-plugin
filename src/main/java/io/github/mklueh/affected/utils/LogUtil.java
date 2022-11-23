@@ -1,7 +1,7 @@
-package io.github.crimix.changedprojectstask.utils;
+package io.github.mklueh.affected.utils;
 
-import io.github.crimix.changedprojectstask.configuration.AffectedExtension;
-import io.github.crimix.changedprojectstask.configuration.PropertiesExtractor;
+import io.github.mklueh.affected.configuration.AffectedExtension;
+import io.github.mklueh.affected.configuration.PropertiesExtractor;
 import org.gradle.api.logging.Logger;
 
 import java.util.Collections;

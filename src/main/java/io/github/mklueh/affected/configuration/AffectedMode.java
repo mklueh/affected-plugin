@@ -1,4 +1,4 @@
-package io.github.crimix.changedprojectstask.configuration;
+package io.github.mklueh.affected.configuration;
 
 /**
  * The two different modes that the plugin can be used

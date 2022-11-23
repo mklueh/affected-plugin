@@ -1,15 +1,12 @@
-package io.github.crimix.changedprojectstask;
+package io.github.mklueh.affected;
 
-import io.github.crimix.changedprojectstask.configuration.AffectedExtension;
-import io.github.crimix.changedprojectstask.configuration.AffectedProjectExtension;
-import io.github.crimix.changedprojectstask.configuration.PropertiesExtractor;
-import io.github.crimix.changedprojectstask.utils.Extension;
+import io.github.mklueh.affected.configuration.AffectedExtension;
+import io.github.mklueh.affected.configuration.PropertiesExtractor;
+import io.github.mklueh.affected.utils.Extension;
 import lombok.experimental.ExtensionMethod;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-
-import static io.github.crimix.changedprojectstask.configuration.Properties.ENABLE;
 
 /**
  *
