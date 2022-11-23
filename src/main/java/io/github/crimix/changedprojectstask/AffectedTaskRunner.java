@@ -67,7 +67,6 @@ public class AffectedTaskRunner {
             extension.getIsRunnableProject().convention(false);
 
 
-
             project.afterEvaluate(p -> {
 
                 Task targetTask = p.getTasks().findByPath(resolvePathToTargetTask(p));
@@ -199,7 +198,8 @@ public class AffectedTaskRunner {
         Set<String> notAllowedToRun = configuration.getNeverRunProjects().getOrElse(Collections.emptySet());
         neverRunProjects = allProjects.stream().filter(p -> notAllowedToRun.contains(p.getName())).collect(Collectors.toSet());
 
-        logger.lifecycle("affected plugin: never run projects size - " + neverRunProjects.size());
+        logger.lifecycle("affected plugin: never run projects size - [" + neverRunProjects
+                .stream().map(Project::getName).collect(Collectors.joining(",")) + "]");
 
         //only those should be allowed to run if set
         Set<String> allowedToRun = PropertiesExtractor.getEnabledModulesParameter(project)
