@@ -39,7 +39,7 @@ public class PropertiesExtractor {
      * @return the mode the plugin is configured to use
      */
     public static AffectedMode getPluginMode(AffectedExtension configuration) {
-        return AffectedMode.valueOf(configuration.getChangedProjectsMode().getOrElse(AffectedMode.INCLUDE_DEPENDENTS.name()));
+        return configuration.getAffectedMode().getOrElse(AffectedMode.INCLUDE_DEPENDENTS);
     }
 
     /**

@@ -31,11 +31,5 @@ public class ConfigurationValidator {
 
         configuration.getAffectsAllRegex().getOrElse(Collections.emptySet()); //Gradle will throw if the type does not match
         configuration.getIgnoredRegex().getOrElse(Collections.emptySet()); //Gradle will throw if the type does not match
-
-        try {
-            AffectedMode.valueOf(configuration.getChangedProjectsMode().getOrElse(AffectedMode.INCLUDE_DEPENDENTS.name()));
-        } catch (IllegalArgumentException ignored) {
-            throw new IllegalArgumentException(String.format("changedProjectsTask: ChangedProjectsMode must be either %s or %s ", AffectedMode.ONLY_DIRECTLY.name(), AffectedMode.INCLUDE_DEPENDENTS.name()));
-        }
     }
 }

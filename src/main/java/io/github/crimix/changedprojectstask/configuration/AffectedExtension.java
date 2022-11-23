@@ -72,6 +72,6 @@ public interface AffectedExtension {
      *
      * @return which mode the plugin is in
      */
-    Property<String> getChangedProjectsMode();
+    Property<AffectedMode> getAffectedMode();
 
 }
