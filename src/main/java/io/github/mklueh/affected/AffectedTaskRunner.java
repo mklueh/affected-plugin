@@ -5,6 +5,11 @@ import io.github.mklueh.affected.providers.ChangedFilesProvider;
 import io.github.mklueh.affected.providers.ProjectDependencyProvider;
 import io.github.mklueh.affected.utils.Extension;
 import io.github.mklueh.affected.utils.LogUtil;
+import io.github.mklueh.affected.utils.LoggingOutputStream;
+import lombok.SneakyThrows;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.PumpStreamHandler;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.logging.Logger;
@@ -12,6 +17,8 @@ import org.gradle.api.logging.Logger;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.gradle.configurationcache.DefaultConfigurationCacheKt.getLogger;
 
 /**
  * TODO name AffectedTask makes no sense for this class and confuses
@@ -42,16 +49,32 @@ public class AffectedTaskRunner {
         this.logger = project.getLogger();
         this.configuration = configuration;
         this.affectedTask = affectedTask;
-        this.extension = extension;
     }
 
     public static void configureAndRun(Project project, Task task, AffectedExtension configuration) {
         AffectedTaskRunner affectedTaskRunner = new AffectedTaskRunner(project, task, configuration);
 
-        affectedTaskRunner.configureTargetTasksForProjects();
+        if (!Extension.shouldUseCommandLine(project)) {
+            affectedTaskRunner.configureTargetTasksForProjects();
+        }
 
         //pure evaluation that enabled or disables the previously configured target tasks
         project.getGradle().projectsEvaluated(g -> affectedTaskRunner.evaluateAffectedProjects());
+    }
+
+    private void afterEvaluate() {
+        evaluateAffectedProjects();
+        if (Extension.shouldUseCommandLine(project)) {
+            commandLineRunProjects();
+        }
+    }
+
+    private void commandLineRunProjects() {
+        for (Project project : project.getAllprojects()) {
+            if (shouldProjectRun(project)) {
+                runCommandLineOnProject(project);
+            }
+        }
     }
 
     /**
@@ -80,50 +103,70 @@ public class AffectedTaskRunner {
                     return;
                 }
 
-
                 //is it a problem that it depends on multiple tasks at the same time?
                 //make targetTask run after changedProjectsTask
                 affectedTask.dependsOn(targetTask);
 
                 //conditionally enable / disable the specific project's task
-                targetTask.onlyIf(t -> {
-
-                    if (true) return false;
-                    //preventing conditions
-                    if (neverRunProjects.contains(p)) {
-                        logger.lifecycle("affected plugin: " + p.getName() + " won't run - (neverRun)");
-                        return false;
-                    }
-
-                    if (!allowedToRunProjects.contains(p)) return false;
-
-                    if (!extension.getIsRunnableProject().getOrElse(false)) {
-                        logger.lifecycle("affected plugin: " + p.getName() + " won't run - (is no runnable project)");
-                        return false;
-                    } else
-                        logger.lifecycle("affected plugin: " + p.getName() + " runs because affectedProject config enabled");
-
-                    boolean willRun = false;
-
-                    //allowing conditions
-                    //noinspection RedundantIfStatement
-                    if (affectsAll) {
-                        //willRun = true;
-                    }
-                    if (alwaysRunProjects.contains(p)) {
-                        willRun = true;
-                    }
-                    if (affectedProjects.contains(p)) {
-                        logger.lifecycle("affected plugin: " + p.getName() + " is affected ##################################################################");
-                        willRun = true;
-                    }
-
-                    if (willRun) logger.lifecycle("### Task " + t.getName() + " will run for " + p.getName() + " ####");
-                    else logger.lifecycle(t.getName() + " will not run");
-
-                    return willRun;
-                });
+                targetTask.onlyIf(t -> shouldProjectRun(p));
             });
+        }
+    }
+
+    private boolean shouldProjectRun(Project p) {
+        //preventing conditions
+        if (neverRunProjects.contains(p)) {
+            logger.lifecycle("affected plugin: " + p.getName() + " won't run - (neverRun)");
+            return false;
+        }
+
+        if (!allowedToRunProjects.contains(p)) return false;
+
+
+        boolean willRun = false;
+
+        //allowing conditions
+        //noinspection RedundantIfStatement
+        if (affectsAll) {
+            //willRun = true;
+        }
+
+        if (alwaysRunProjects.contains(p)) {
+            willRun = true;
+        }
+
+        if (affectedProjects.contains(p)) {
+            logger.lifecycle("affected plugin: " + p.getName() + " is affected");
+            willRun = true;
+        }
+
+        return willRun;
+    }
+
+    @SneakyThrows
+    private void runCommandLineOnProject(Project affected) {
+        String commandLine = String.format("%s %s %s", getGradleWrapper(), resolvePathToTargetTask(affected), Extension.getCommandLineArgs(project));
+
+        getLogger().lifecycle("Running {}", commandLine);
+
+        LoggingOutputStream stdout = new LoggingOutputStream(project.getLogger()::lifecycle);
+        LoggingOutputStream stderr = new LoggingOutputStream(project.getLogger()::error);
+        //We use Apache Commons Exec because we do not want to re-invent the wheel as ProcessBuilder hangs if the output or error buffer is full
+        DefaultExecutor exec = new DefaultExecutor();
+        exec.setStreamHandler(new PumpStreamHandler(stdout, stderr));
+        exec.setWorkingDirectory(project.getRootProject().getProjectDir());
+        int exitValue = exec.execute(CommandLine.parse(commandLine));
+
+        if (exitValue != 0) {
+            throw new IllegalStateException("Executing command failed");
+        }
+    }
+
+    private String getGradleWrapper() {
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            return "gradlew.bat";
+        } else {
+            return "./gradlew";
         }
     }
 

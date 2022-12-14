@@ -22,4 +22,8 @@ public class Properties {
 
     public static final String ENABLED_FOR_ALL_MODULES = PREFIX + "all";
 
+    public static final String ENABLE_COMMANDLINE = PREFIX + "runCommandLine";
+
+    public static final String COMMANDLINE_ARGS = PREFIX + "commandLineArgs";
+
 }

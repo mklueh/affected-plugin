@@ -29,6 +29,10 @@ public class AffectedPlugin implements Plugin<Project> {
 
         Task task = project.getTasks().register("affected").get();
 
+        if (Extension.hasBothRunCommands(project)) {
+            throw new IllegalArgumentException("You may either use run or runCommandLine, not both");
+        }
+
         if (Extension.isAffectedPluginEnabled(project)) {
             AffectedTaskRunner.configureAndRun(project, task, configuration);
         } else System.out.println("affected plugin: disabled");
