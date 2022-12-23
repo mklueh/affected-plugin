@@ -70,10 +70,13 @@ public class AffectedTaskRunner {
         }
     }
 
+    /**
+     * TODO rename
+     */
     private void commandLineRunProjects() {
         for (Project project : rootProject.getAllprojects()) {
             if (shouldProjectRun(project)) {
-                runCommandLineOnProject(project);
+                runProjectViaCommandLine(project);
             }
         }
     }
@@ -114,6 +117,7 @@ public class AffectedTaskRunner {
     }
 
     private boolean shouldProjectRun(Project p) {
+
         //preventing conditions
         if (neverRunProjects.contains(p)) {
             logger.lifecycle("affected plugin: " + p.getName() + " won't run - (neverRun)");
@@ -121,7 +125,6 @@ public class AffectedTaskRunner {
         }
 
         if (!allowedToRunProjects.contains(p)) return false;
-
 
         boolean willRun = false;
 
@@ -144,8 +147,14 @@ public class AffectedTaskRunner {
     }
 
     @SneakyThrows
-    private void runCommandLineOnProject(Project affected) {
-        String commandLine = String.format("%s %s %s", getGradleWrapper(), resolvePathToTargetTask(affected), Extension.getCommandLineArgs(rootProject));
+    private void runProjectViaCommandLine(Project affected) {
+        if (ConfigurationLoader.dryRun(configuration, affected)) return;
+
+        String commandLineArgs = Extension.getCommandLineArgs(affected);
+
+        rootProject.getLogger().lifecycle("args: " + commandLineArgs);
+
+        String commandLine = String.format("%s %s %s", getGradleWrapper(), resolvePathToTargetTask(affected), commandLineArgs);
 
         rootProject.getLogger().lifecycle("Running {}", commandLine);
 

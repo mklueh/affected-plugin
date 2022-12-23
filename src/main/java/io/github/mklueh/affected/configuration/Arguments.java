@@ -16,6 +16,12 @@ public class Arguments {
 
     public static final String COMMIT_MODE = PREFIX + "compareMode";
 
+    /**
+     * Prevents actual execution
+     * TODO
+     */
+    public static final String DRY_RUN = PREFIX + "dryRUn";
+
     public static final String TARGET_TASK = PREFIX + "target";
 
     public static final String ENABLED_FOR_MODULES = PREFIX + "projects";
@@ -26,6 +32,6 @@ public class Arguments {
 
     public static final String AFFECTED_MODE = PREFIX + "affectedMode";
 
-    public static final String COMMANDLINE_ARGS = PREFIX + "commandLineArgs";
+    public static final String COMMANDLINE_ARGS = PREFIX + "args";
 
 }

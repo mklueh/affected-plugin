@@ -6,14 +6,13 @@ package io.github.mklueh.affected.configuration;
 public enum ExecutionMode {
 
     /**
-     * The affected plugin will directly execute the task
+     * The task of the affected project will be triggered directly
      */
     DIRECT_EXECUTION,
 
 
     /**
-     * The task to be executed will be
-     * called as a separate process
+     * The task of the affected project will be triggered via command line
      */
     COMMAND_LINE_EXECUTION
 
