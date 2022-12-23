@@ -5,12 +5,12 @@ import org.gradle.api.Project;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.github.mklueh.affected.configuration.Properties.*;
+import static io.github.mklueh.affected.configuration.Arguments.*;
 
 /**
  * Extractor for CLI arguments
  */
-public class PropertiesExtractor {
+public class ArgumentsExtractor {
 
     /**
      * Gets the task to run from the command line arguments if given
@@ -33,14 +33,6 @@ public class PropertiesExtractor {
                 .map(String::trim).collect(Collectors.toSet()));
     }
 
-    /**
-     * Gets the plugin's configured mode
-     *
-     * @return the mode the plugin is configured to use
-     */
-    public static AffectedMode getPluginMode(AffectedExtension configuration) {
-        return configuration.getAffectedMode().getOrElse(AffectedMode.INCLUDE_DEPENDENTS);
-    }
 
     /**
      * Extracts the value of a given CLI parameter

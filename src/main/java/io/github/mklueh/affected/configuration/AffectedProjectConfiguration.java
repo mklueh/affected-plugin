@@ -8,10 +8,10 @@ import org.gradle.api.provider.Property;
  * The extension that allows configuring and controlling
  * individual projects within a monorepo
  */
-public interface AffectedProjectExtension {
+public interface AffectedProjectConfiguration {
 
     /**
-     * Determins , if this project is generally enabled and taken into consideration
+     * Determines , if this project is generally enabled and taken into consideration
      * by the affected plugin
      */
     Property<Boolean> getEnabled();

@@ -4,10 +4,12 @@ import org.gradle.api.Project;
 
 import java.util.Optional;
 
-import static io.github.mklueh.affected.configuration.Properties.*;
+import static io.github.mklueh.affected.configuration.Arguments.*;
 
 /**
  * Created by Marian at 26.05.2022
+ *
+ * TODO will be used to enhance diverse classes via lombok
  */
 public class Extension {
     /**
@@ -34,7 +36,8 @@ public class Extension {
      * @return true if the plugin's task is allowed to run and configure
      */
     public static boolean isAffectedPluginEnabled(Project project) {
-        return project.getRootProject().hasProperty(ENABLE) || project.getRootProject().hasProperty(ENABLE_COMMANDLINE);
+        return project.getRootProject().hasProperty(ENABLE)
+                || project.getRootProject().hasProperty(EXECUTION_MODE);
     }
 
     /**
@@ -42,7 +45,8 @@ public class Extension {
      * @return true if the plugin has been told to run using both task and commandline
      */
     public static boolean hasBothRunCommands(Project project) {
-        return project.getRootProject().hasProperty(ENABLE) && project.getRootProject().hasProperty(ENABLE_COMMANDLINE);
+        return project.getRootProject().hasProperty(ENABLE)
+                && project.getRootProject().hasProperty(EXECUTION_MODE);
     }
 
     /**
@@ -50,7 +54,7 @@ public class Extension {
      * @return true if the task should be invoked using the commandline
      */
     public static boolean shouldUseCommandLine(Project project) {
-        return project.getRootProject().hasProperty(ENABLE_COMMANDLINE);
+        return project.getRootProject().hasProperty(EXECUTION_MODE);
     }
 
     /**

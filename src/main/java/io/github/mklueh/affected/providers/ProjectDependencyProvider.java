@@ -1,6 +1,6 @@
 package io.github.mklueh.affected.providers;
 
-import io.github.mklueh.affected.configuration.AffectedExtension;
+import io.github.mklueh.affected.configuration.AffectedConfiguration;
 import io.github.mklueh.affected.utils.Extension;
 import io.github.mklueh.affected.utils.LogUtil;
 import io.github.mklueh.affected.utils.Pair;
@@ -23,11 +23,11 @@ public class ProjectDependencyProvider {
 
     private final Logger logger;
     private final Project project;
-    private final AffectedExtension configuration;
+    private final AffectedConfiguration configuration;
     private final Map<Project, Set<Project>> projectDependentsMap;
     private final ProjectNode rootNode;
 
-    public ProjectDependencyProvider(Project project, AffectedExtension configuration) {
+    public ProjectDependencyProvider(Project project, AffectedConfiguration configuration) {
         this.project = project;
         this.logger = project.getLogger();
         this.configuration = configuration;

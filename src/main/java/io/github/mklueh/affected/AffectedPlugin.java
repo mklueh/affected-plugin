@@ -1,7 +1,7 @@
 package io.github.mklueh.affected;
 
-import io.github.mklueh.affected.configuration.AffectedExtension;
-import io.github.mklueh.affected.configuration.PropertiesExtractor;
+import io.github.mklueh.affected.configuration.AffectedConfiguration;
+import io.github.mklueh.affected.configuration.ArgumentsExtractor;
 import io.github.mklueh.affected.utils.Extension;
 import lombok.experimental.ExtensionMethod;
 import org.gradle.api.Plugin;
@@ -12,7 +12,7 @@ import org.gradle.api.Task;
  *
  */
 @SuppressWarnings("ALL")
-@ExtensionMethod(PropertiesExtractor.class)
+@ExtensionMethod(ArgumentsExtractor.class)
 public class AffectedPlugin implements Plugin<Project> {
 
     @Override
@@ -24,8 +24,8 @@ public class AffectedPlugin implements Plugin<Project> {
         }
 
         //top-level extension
-        AffectedExtension configuration = project.getExtensions()
-                .create("affected", AffectedExtension.class);
+        AffectedConfiguration configuration = project.getExtensions()
+                .create("affected", AffectedConfiguration.class);
 
         Task task = project.getTasks().register("affected").get();
 

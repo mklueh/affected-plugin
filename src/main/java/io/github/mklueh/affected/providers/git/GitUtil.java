@@ -1,12 +1,12 @@
 package io.github.mklueh.affected.providers.git;
 
-import io.github.mklueh.affected.configuration.PropertiesExtractor;
+import io.github.mklueh.affected.configuration.ArgumentsExtractor;
 import org.gradle.api.Project;
 
 import java.io.File;
 import java.util.Optional;
 
-import static io.github.mklueh.affected.configuration.Properties.*;
+import static io.github.mklueh.affected.configuration.Arguments.*;
 
 /**
  * Created by Marian at 26.05.2022
@@ -19,7 +19,7 @@ public class GitUtil {
      * @return either an optional with the previous commit id or an empty optional if it has not been configured
      */
     public static Optional<String> getPreviousCommitId(Project project) {
-        return PropertiesExtractor.extractParameterValue(project, PREVIOUS_COMMIT);
+        return ArgumentsExtractor.extractParameterValue(project, PREVIOUS_COMMIT);
     }
 
     /**
@@ -28,7 +28,7 @@ public class GitUtil {
      * @return either an optional with the commit id or an empty optional if it has not been configured
      */
     public static Optional<String> getCommitId(Project project) {
-        return PropertiesExtractor.extractParameterValue(project, CURRENT_COMMIT);
+        return ArgumentsExtractor.extractParameterValue(project, CURRENT_COMMIT);
     }
 
     /**

@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  * The configuration that the user of the plugin can change to affect
  * the behavior of the plugin
  */
-public interface AffectedExtension {
+public interface AffectedConfiguration {
 
     /**
      * If the plugin should log stuff like changed files and identified project dependencies.
@@ -31,7 +31,7 @@ public interface AffectedExtension {
      *
      * @return a list of projects that should be evaluated including their dependency modules for changes
      */
-    SetProperty<String> getProjects();
+    SetProperty<String> getAllowedToRun();
 
     /**
      * The projects to execute the task on when there is a not ignored change.
@@ -73,5 +73,11 @@ public interface AffectedExtension {
      * @return which mode the plugin is in
      */
     Property<AffectedMode> getAffectedMode();
+
+
+    /**
+     *
+     */
+    Property<ExecutionMode> getExecutionMode();
 
 }

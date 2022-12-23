@@ -1,7 +1,7 @@
 package io.github.mklueh.affected.providers.git;
 
-import io.github.mklueh.affected.configuration.AffectedExtension;
-import io.github.mklueh.affected.configuration.PropertiesExtractor;
+import io.github.mklueh.affected.configuration.AffectedConfiguration;
+import io.github.mklueh.affected.configuration.ArgumentsExtractor;
 import lombok.experimental.ExtensionMethod;
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
@@ -9,13 +9,13 @@ import org.gradle.internal.impldep.org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.Optional;
 
-import static io.github.mklueh.affected.configuration.Properties.CURRENT_COMMIT;
-import static io.github.mklueh.affected.configuration.Properties.PREVIOUS_COMMIT;
+import static io.github.mklueh.affected.configuration.Arguments.CURRENT_COMMIT;
+import static io.github.mklueh.affected.configuration.Arguments.PREVIOUS_COMMIT;
 
 /**
  * This class is responsible for creating the git diff command based on the users command line choices when running the task.
  */
-@ExtensionMethod(PropertiesExtractor.class)
+@ExtensionMethod(ArgumentsExtractor.class)
 public class GitCommandProvider {
 
     private final Logger logger;
@@ -29,9 +29,9 @@ public class GitCommandProvider {
     private static final String BASE_DIFF_COMMAND = "git diff --name-only";
 
     private final Project project;
-    private final AffectedExtension configuration;
+    private final AffectedConfiguration configuration;
 
-    public GitCommandProvider(Project project, AffectedExtension configuration) {
+    public GitCommandProvider(Project project, AffectedConfiguration configuration) {
         this.project = project;
         this.logger = project.getLogger();
         this.configuration = configuration;

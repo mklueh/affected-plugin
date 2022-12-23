@@ -1,8 +1,8 @@
 package io.github.mklueh.affected.providers;
 
-import io.github.mklueh.affected.configuration.AffectedExtension;
+import io.github.mklueh.affected.configuration.AffectedConfiguration;
 import io.github.mklueh.affected.providers.git.GitCommandProvider;
-import io.github.mklueh.affected.utils.CollectingOutputStream;
+import io.github.mklueh.affected.providers.git.CollectingOutputStream;
 import io.github.mklueh.affected.providers.git.GitUtil;
 import io.github.mklueh.affected.utils.LogUtil;
 import lombok.SneakyThrows;
@@ -23,12 +23,12 @@ public class ChangedFilesProvider {
 
     private final Logger logger;
     private final Project project;
-    private final AffectedExtension configuration;
+    private final AffectedConfiguration configuration;
     private final GitCommandProvider gitCommandProvider;
     private final List<File> changedFiles;
     private final boolean affectsAllProjects;
 
-    public ChangedFilesProvider(Project project, AffectedExtension configuration) {
+    public ChangedFilesProvider(Project project, AffectedConfiguration configuration) {
         this.project = project;
         this.logger = project.getLogger();
         this.configuration = configuration;

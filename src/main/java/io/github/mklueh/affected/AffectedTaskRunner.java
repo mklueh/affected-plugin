@@ -18,18 +18,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.gradle.configurationcache.DefaultConfigurationCacheKt.getLogger;
-
 /**
  * TODO name AffectedTask makes no sense for this class and confuses
  */
 public class AffectedTaskRunner {
 
     private final Logger logger;
-    private final Project project;
+    private final Project rootProject;
     private final Task affectedTask;
-    private AffectedProjectExtension extension;
-    private final AffectedExtension configuration;
+    private AffectedProjectConfiguration extension;
+    private final AffectedConfiguration configuration;
 
     private boolean affectsAll = false;
 
@@ -44,33 +42,36 @@ public class AffectedTaskRunner {
 
     private Set<Project> affectedProjects = new HashSet<>();
 
-    private AffectedTaskRunner(Project project, Task affectedTask, AffectedExtension configuration) {
-        this.project = project;
-        this.logger = project.getLogger();
+    private AffectedTaskRunner(Project rootProject, Task affectedTask, AffectedConfiguration configuration) {
+        this.rootProject = rootProject;
+        this.logger = rootProject.getLogger();
         this.configuration = configuration;
         this.affectedTask = affectedTask;
     }
 
-    public static void configureAndRun(Project project, Task task, AffectedExtension configuration) {
+    public static void configureAndRun(Project project, Task task, AffectedConfiguration configuration) {
         AffectedTaskRunner affectedTaskRunner = new AffectedTaskRunner(project, task, configuration);
 
-        if (!Extension.shouldUseCommandLine(project)) {
+        var executionMode = ConfigurationLoader.getExecutionMode(configuration, project);
+
+        if (executionMode.equals(ExecutionMode.DIRECT_EXECUTION)) {
             affectedTaskRunner.configureTargetTasksForProjects();
         }
 
         //pure evaluation that enabled or disables the previously configured target tasks
-        project.getGradle().projectsEvaluated(g -> affectedTaskRunner.evaluateAffectedProjects());
+        project.getGradle().projectsEvaluated(g -> affectedTaskRunner.afterEvaluate(executionMode));
     }
 
-    private void afterEvaluate() {
+    private void afterEvaluate(ExecutionMode executionMode) {
         evaluateAffectedProjects();
-        if (Extension.shouldUseCommandLine(project)) {
+
+        if (executionMode.equals(ExecutionMode.COMMAND_LINE_EXECUTION)) {
             commandLineRunProjects();
         }
     }
 
     private void commandLineRunProjects() {
-        for (Project project : project.getAllprojects()) {
+        for (Project project : rootProject.getAllprojects()) {
             if (shouldProjectRun(project)) {
                 runCommandLineOnProject(project);
             }
@@ -82,13 +83,12 @@ public class AffectedTaskRunner {
      * Testability
      */
     private void configureTargetTasksForProjects() {
-        for (Project project : project.getAllprojects()) {
+        for (Project project : rootProject.getAllprojects()) {
 
-            AffectedProjectExtension extension = project.getExtensions()
-                    .create("affectedProject", AffectedProjectExtension.class);
+            AffectedProjectConfiguration extension = project.getExtensions()
+                    .create("affectedProject", AffectedProjectConfiguration.class);
 
             extension.getIsRunnableProject().convention(false);
-
 
             project.afterEvaluate(p -> {
 
@@ -145,16 +145,16 @@ public class AffectedTaskRunner {
 
     @SneakyThrows
     private void runCommandLineOnProject(Project affected) {
-        String commandLine = String.format("%s %s %s", getGradleWrapper(), resolvePathToTargetTask(affected), Extension.getCommandLineArgs(project));
+        String commandLine = String.format("%s %s %s", getGradleWrapper(), resolvePathToTargetTask(affected), Extension.getCommandLineArgs(rootProject));
 
-        getLogger().lifecycle("Running {}", commandLine);
+        rootProject.getLogger().lifecycle("Running {}", commandLine);
 
-        LoggingOutputStream stdout = new LoggingOutputStream(project.getLogger()::lifecycle);
-        LoggingOutputStream stderr = new LoggingOutputStream(project.getLogger()::error);
+        LoggingOutputStream stdout = new LoggingOutputStream(rootProject.getLogger()::lifecycle);
+        LoggingOutputStream stderr = new LoggingOutputStream(rootProject.getLogger()::error);
         //We use Apache Commons Exec because we do not want to re-invent the wheel as ProcessBuilder hangs if the output or error buffer is full
         DefaultExecutor exec = new DefaultExecutor();
         exec.setStreamHandler(new PumpStreamHandler(stdout, stderr));
-        exec.setWorkingDirectory(project.getRootProject().getProjectDir());
+        exec.setWorkingDirectory(rootProject.getRootProject().getProjectDir());
         int exitValue = exec.execute(CommandLine.parse(commandLine));
 
         if (exitValue != 0) {
@@ -175,7 +175,7 @@ public class AffectedTaskRunner {
      */
     private void evaluateAffectedProjects() {
         Project project = getRootProject();
-        ConfigurationValidator.validate(configuration, project);
+        AffectedConfigurationValidator.validate(configuration, project);
 
         if (!isAffectedPluginEnabled()) {
             logger.lifecycle("affected plugin: disabled");
@@ -210,7 +210,9 @@ public class AffectedTaskRunner {
         }
 
         Set<Project> dependentAffectedProjects = new HashSet<>();
-        if (AffectedMode.INCLUDE_DEPENDENTS == PropertiesExtractor.getPluginMode(configuration)) {
+        AffectedMode affectedMode = ConfigurationLoader.getAffectedMode(configuration, project);
+
+        if (AffectedMode.INCLUDE_DEPENDENTS == affectedMode) {
             dependentAffectedProjects.addAll(projectDependencyProvider.getAffectedDependentProjects(directlyAffectedProjects));
             if (LogUtil.shouldLog(configuration)) {
                 logger.lifecycle("affected plugin: dependent affected Projects: {}", dependentAffectedProjects);
@@ -245,8 +247,8 @@ public class AffectedTaskRunner {
                 .stream().map(Project::getName).collect(Collectors.joining(",")) + "]");
 
         //only those should be allowed to run if set
-        Set<String> allowedToRun = PropertiesExtractor.getEnabledModulesParameter(project)
-                .orElse(configuration.getProjects().getOrElse(Collections.emptySet()));
+        Set<String> allowedToRun = ArgumentsExtractor.getEnabledModulesParameter(project)
+                .orElse(configuration.getAllowedToRun().getOrElse(Collections.emptySet()));
 
         allowedToRunProjects = allProjects.stream().filter(p -> allowedToRun.contains(p.getName())).collect(Collectors.toSet());
         logger.lifecycle("affected plugin: allowedToRun - " + allowedToRunProjects.stream().map(Project::getName)
@@ -260,16 +262,16 @@ public class AffectedTaskRunner {
     }
 
     private Project getRootProject() {
-        return project.getRootProject();
+        return rootProject.getRootProject();
     }
 
     private boolean isAffectedPluginEnabled() {
-        return Extension.isAffectedPluginEnabled(project);
+        return Extension.isAffectedPluginEnabled(rootProject);
     }
 
 
     private String resolvePathToTargetTask(Project project) {
-        String targetTask = PropertiesExtractor.getTargetTaskParameter(project)
+        String targetTask = ArgumentsExtractor.getTargetTaskParameter(project)
                 .orElse(configuration.getTarget().getOrNull());
 
         if (LogUtil.shouldLog(configuration)) {

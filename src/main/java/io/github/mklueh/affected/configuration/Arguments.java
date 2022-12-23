@@ -1,10 +1,10 @@
 package io.github.mklueh.affected.configuration;
 
 /**
- * Configurable properies that can be used in gralde using the -P prefix
+ * Configurable properties that can be used in gradle using the -P prefix
  * Like -PchangedProjectsTask.enable
  */
-public class Properties {
+public class Arguments {
     private static final String PREFIX = "affected.";
 
     //TODO try to get rid of this unnecessary property
@@ -22,7 +22,9 @@ public class Properties {
 
     public static final String ENABLED_FOR_ALL_MODULES = PREFIX + "all";
 
-    public static final String ENABLE_COMMANDLINE = PREFIX + "runCommandLine";
+    public static final String EXECUTION_MODE = PREFIX + "executionMode";
+
+    public static final String AFFECTED_MODE = PREFIX + "affectedMode";
 
     public static final String COMMANDLINE_ARGS = PREFIX + "commandLineArgs";
 

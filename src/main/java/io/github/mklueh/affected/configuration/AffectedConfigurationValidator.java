@@ -8,14 +8,14 @@ import java.util.Set;
 /**
  * Created by Marian at 26.05.2022
  */
-public class ConfigurationValidator {
+public class AffectedConfigurationValidator {
     /**
      * Runs validation on the configuration.
      */
-    public static void validate(AffectedExtension configuration, Project rootProject) {
+    public static void validate(AffectedConfiguration configuration, Project rootProject) {
         String taskToRun = configuration.getTarget().getOrNull();
 
-        if (taskToRun == null && PropertiesExtractor.getTargetTaskParameter(rootProject).isEmpty()) {
+        if (taskToRun == null && ArgumentsExtractor.getTargetTaskParameter(rootProject).isEmpty()) {
             throw new IllegalArgumentException("changedProjectsTask: target task is required");
         } else if (taskToRun != null && taskToRun.startsWith(":")) {
             throw new IllegalArgumentException("changedProjectsTask: target task should not start with :");

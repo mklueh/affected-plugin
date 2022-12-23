@@ -1,4 +1,4 @@
-package io.github.mklueh.affected.utils;
+package io.github.mklueh.affected.providers.git;
 
 import org.apache.commons.exec.LogOutputStream;
 
