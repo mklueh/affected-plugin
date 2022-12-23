@@ -4,8 +4,9 @@ import org.gradle.api.Project;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+
 
 /**
  * Created by Marian at 23.12.2022
