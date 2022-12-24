@@ -2,7 +2,7 @@ package io.github.mklueh.affected.configuration;
 
 /**
  * Configurable properties that can be used in gradle using the -P prefix
- * Like -PchangedProjectsTask.enable
+ * Like -Paffected.enable
  */
 public class Arguments {
     private static final String PREFIX = "affected.";

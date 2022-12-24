@@ -116,6 +116,7 @@ public class AffectedTaskRunner {
         }
     }
 
+    @SuppressWarnings("RedundantIfStatement")
     private boolean shouldProjectRun(Project p) {
 
         //preventing conditions
@@ -128,10 +129,8 @@ public class AffectedTaskRunner {
 
         boolean willRun = false;
 
-        //allowing conditions
-        //noinspection RedundantIfStatement
         if (affectsAll) {
-            //willRun = true;
+            willRun = true;
         }
 
         if (alwaysRunProjects.contains(p)) {
