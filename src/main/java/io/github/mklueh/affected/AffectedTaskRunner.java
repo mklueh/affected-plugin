@@ -120,29 +120,34 @@ public class AffectedTaskRunner {
     private boolean shouldProjectRun(Project p) {
 
         //preventing conditions
+        //negative list
         if (neverRunProjects.contains(p)) {
-            logger.lifecycle("affected plugin: " + p.getName() + " won't run - (neverRun)");
+            logger.lifecycle("affected plugin: " + p.getName() + " is marked as 'never run'");
             return false;
         }
 
-        if (!allowedToRunProjects.contains(p)) return false;
-
-        boolean willRun = false;
+        //positive list - if !never run && !allowed, not running. Never run higher order than allowed
+        if (!allowedToRunProjects.contains(p)) {
+            logger.lifecycle("affected plugin: " + p.getName() + " is not allowed to run");
+            return false;
+        }
 
         if (affectsAll) {
-            willRun = true;
+            logger.lifecycle("affected plugin: all projects are affected");
+            return true;
         }
 
         if (alwaysRunProjects.contains(p)) {
-            willRun = true;
+            logger.lifecycle("affected plugin: " + p.getName() + " is marked as 'always run'");
+            return true;
         }
 
         if (affectedProjects.contains(p)) {
             logger.lifecycle("affected plugin: " + p.getName() + " is affected");
-            willRun = true;
+            return true;
         }
 
-        return willRun;
+        return false;
     }
 
     @SneakyThrows
